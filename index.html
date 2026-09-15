@@ -242,7 +242,8 @@
     scene.add(playerGroup);
 
     let isModelLoaded = false;
-    let playerSize = { x: 2.2, z: 4.5 }; // Bounding dimensions for collision
+    const playerWidth = 1.6;
+    const playerLength = 3.6;
 
     const gltfLoader = new THREE.GLTFLoader();
     gltfLoader.load(
@@ -291,7 +292,7 @@
       }
     );
 
-    // 6. MOVING TRAFFIC OBSTACLES
+    // 6. DYNAMICALLY DRIVING & SWERVING TRAFFIC
     const trafficList = [];
     const lanes = [-7, -2.5, 2.5, 7];
 
@@ -314,14 +315,15 @@
       cabin.castShadow = true;
       obstacleGroup.add(cabin);
 
-      const randomLane = lanes[Math.floor(Math.random() * lanes.length)];
-      obstacleGroup.position.set(randomLane, 0, zPos);
+      const initialLane = lanes[Math.floor(Math.random() * lanes.length)];
+      obstacleGroup.position.set(initialLane, 0, zPos);
       
-      // Assign individual driving speed to each obstacle car (forward along -Z axis)
       obstacleGroup.userData = {
-        speed: 0.2 + (Math.random() * 0.15),
+        speed: 0.25 + (Math.random() * 0.18),
+        targetX: initialLane,
         width: 2.1,
-        length: 4.3
+        length: 4.3,
+        changeTimer: Math.random() * 200 + 100
       };
 
       scene.add(obstacleGroup);
@@ -397,7 +399,7 @@
       ctx.fillText('KM/H', cx, cy + 44);
     }
 
-    // 8. CONTROLS, PHYSICS & CAMERA DYNAMICS
+    // 8. CONTROLS & PHYSICS
     let speed = 0;
     let score = 0;
     let isGameOver = false;
@@ -417,12 +419,10 @@
       if (isGameOver) return;
       requestAnimationFrame(animate);
 
-      // Speed control
       if (keys.ArrowUp) speed = Math.min(speed + accel, maxSpeed);
       else if (keys.ArrowDown) speed = Math.max(speed - (accel * 1.5), -maxSpeed / 3);
       else speed *= friction;
 
-      // Steering
       const targetSteer = keys.ArrowLeft ? -0.35 : (keys.ArrowRight ? 0.35 : 0);
       steerAngle += (targetSteer - steerAngle) * 0.12;
 
@@ -435,36 +435,50 @@
 
       playerGroup.position.z -= speed;
 
-      // Update Moving Traffic
+      // Update AI Traffic (Forward driving + Sudden Lane Swerves)
       trafficList.forEach(t => {
-        // Move obstacles down the road forward (-Z)
+        // Drive obstacle forward along highway
         t.position.z -= t.userData.speed;
 
-        // Recycle obstacles when far behind the player
-        if (t.position.z > playerGroup.position.z + 20) {
-          t.position.z = playerGroup.position.z - 300 - (Math.random() * 80);
-          t.position.x = lanes[Math.floor(Math.random() * lanes.length)];
-          t.userData.speed = 0.2 + (Math.random() * 0.15);
+        // Random lane changes / direction shifts
+        t.userData.changeTimer--;
+        if (t.userData.changeTimer <= 0) {
+          t.userData.targetX = lanes[Math.floor(Math.random() * lanes.length)];
+          t.userData.changeTimer = Math.random() * 180 + 90; // Reset timer
         }
 
-        // PHYSICAL COLLISION DETECTION (Bounding Box Intersection)
+        // Smooth steering maneuver towards target lane
+        const xDiff = t.userData.targetX - t.position.x;
+        t.position.x += xDiff * 0.035;
+        t.rotation.y = -xDiff * 0.15; // Visual lean while swerving
+
+        // Recycle obstacles far behind player
+        if (t.position.z > playerGroup.position.z + 20) {
+          t.position.z = playerGroup.position.z - 300 - (Math.random() * 80);
+          const newLane = lanes[Math.floor(Math.random() * lanes.length)];
+          t.position.x = newLane;
+          t.userData.targetX = newLane;
+          t.userData.speed = 0.25 + (Math.random() * 0.18);
+        }
+
+        // PHYSICAL IMPACT & COLLISION DETECTION
         const dx = Math.abs(playerGroup.position.x - t.position.x);
         const dz = Math.abs(playerGroup.position.z - t.position.z);
         
-        const minXOverlap = (playerSize.x + t.userData.width) / 2;
-        const minZOverlap = (playerSize.z + t.userData.length) / 2;
+        const minXOverlap = (playerWidth + t.userData.width * 0.7) / 2;
+        const minZOverlap = (playerLength + t.userData.length * 0.7) / 2;
 
         if (dx < minXOverlap && dz < minZOverlap) {
-          // PHYSICAL BOUNCE IMPACT BEFORE CRASH
-          const pushDirection = playerGroup.position.x > t.position.x ? 1 : -1;
-          playerGroup.position.x += pushDirection * 0.8;
-          t.position.x -= pushDirection * 0.6;
-          cameraShake = 0.5;
+          const pushDirection = playerGroup.position.x > t.position.x ? 0.6 : -0.6;
+          playerGroup.position.x += pushDirection;
+          playerGroup.rotation.y += pushDirection * 0.5;
+          t.position.x -= pushDirection * 0.5;
+          
+          cameraShake = 0.8;
           triggerCrash();
         }
       });
 
-      // Score & HUD
       if (speed > 0.02) {
         score += Math.round(speed * 10);
         document.getElementById('score-display').innerText = score;
@@ -473,23 +487,20 @@
       const displayKm = Math.abs(speed) * 140;
       drawSpeedometer(displayKm);
 
-      // Keep dynamic light tracking player
       sunLight.position.z = playerGroup.position.z - 40;
       sunMesh.position.z = playerGroup.position.z - 400;
 
-      // Recycle Road Markings
       laneMarkers.forEach(m => {
         if (m.position.z > playerGroup.position.z + 10) m.position.z -= 1800;
       });
 
-      // Recycle Houses
       houseList.forEach(h => {
         if (h.position.z > playerGroup.position.z + 30) {
           h.position.z -= 1800;
         }
       });
 
-      // DYNAMIC SMOOTH CAMERA FOLLOWING (Leans in turns & reacts to speed)
+      // DYNAMIC CAMERA
       const targetCamX = playerGroup.position.x * 0.75;
       const targetCamY = playerGroup.position.y + 3.0 + (speed * 0.8);
       const targetCamZ = playerGroup.position.z + 7.5 + (speed * 1.5);
@@ -532,8 +543,11 @@
       playerGroup.rotation.set(0, 0, 0);
 
       trafficList.forEach((t, i) => {
-        t.position.set(lanes[Math.floor(Math.random() * lanes.length)], 0, -60 - (i * 45));
-        t.userData.speed = 0.2 + (Math.random() * 0.15);
+        const lane = lanes[Math.floor(Math.random() * lanes.length)];
+        t.position.set(lane, 0, -60 - (i * 45));
+        t.userData.targetX = lane;
+        t.userData.speed = 0.25 + (Math.random() * 0.18);
+        t.userData.changeTimer = Math.random() * 200 + 100;
       });
 
       animate();
