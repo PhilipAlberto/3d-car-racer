@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sunny Highway Racer 3D</title>
+  <title>Sunny Highway Racer 3D - Showroom Intro</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body { overflow: hidden; background: #cce0ff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -16,6 +16,8 @@
       gap: 15px;
       z-index: 10;
       pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
     }
     .card {
       background: rgba(255, 255, 255, 0.85);
@@ -45,6 +47,8 @@
       align-items: center;
       z-index: 10;
       pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
     }
 
     #loading-screen {
@@ -64,6 +68,40 @@
       padding: 20px;
     }
 
+    #showroom-ui {
+      display: none;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(16px);
+      padding: 40px 50px;
+      text-align: center;
+      border-radius: 20px;
+      z-index: 100;
+      color: #222;
+      animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #showroom-ui h1 { font-size: 34px; font-weight: 900; letter-spacing: -1px; color: #1a73e8; margin-bottom: 6px; }
+    #showroom-ui p { color: #666; font-size: 14px; margin-bottom: 24px; }
+    
+    .primary-btn {
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      padding: 16px 40px;
+      font-size: 18px;
+      font-weight: 800;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+      transition: all 0.2s ease;
+      letter-spacing: 0.5px;
+    }
+    .primary-btn:hover { background: #1557b0; transform: translateY(-2px); }
+
     #game-over {
       display: none;
       position: absolute;
@@ -79,30 +117,26 @@
       color: #222;
     }
     #game-over h1 { color: #d93025; font-size: 32px; margin-bottom: 8px; }
-    #restart-btn {
-      margin-top: 20px;
-      background: #1a73e8;
-      color: #fff;
-      border: none;
-      padding: 12px 28px;
-      font-size: 15px;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(26, 115, 232, 0.3);
-      transition: background 0.2s;
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     }
-    #restart-btn:hover { background: #1557b0; }
   </style>
 
-  <!-- Three.js + GLTF Loader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 
   <div id="loading-screen">
-    <div id="loading-text">PREPARING GAME ENVIRONMENT...</div>
+    <div id="loading-text">LOADING VEHICLE SHOWROOM...</div>
+  </div>
+
+  <div id="showroom-ui">
+    <h1>SUNNY HIGHWAY</h1>
+    <p>3D SHOWROOM PREVIEW</p>
+    <button class="primary-btn" id="start-btn" onclick="startGame()">START DRIVE</button>
   </div>
 
   <div id="hud">
@@ -120,11 +154,63 @@
     <h1>CRASHED!</h1>
     <p style="color:#666; font-size: 14px;">FINAL SCORE</p>
     <div style="font-size: 44px; font-weight: 800; color:#1a73e8; margin: 10px 0;" id="final-score">0</div>
-    <button id="restart-btn" onclick="resetGame()">DRIVE AGAIN</button>
+    <button class="primary-btn" onclick="resetGame()">DRIVE AGAIN</button>
   </div>
 
   <script>
-    // 1. SCENE SETUP
+    // 1. AUDIO ENGINE (Web Audio API)
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+    let bgMusicInterval;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioCtx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playBgMusic() {
+      initAudio();
+      if (bgMusicInterval) return;
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      
+      const notes = [110, 130.81, 146.83, 164.81];
+      let noteIdx = 0;
+      
+      bgMusicInterval = setInterval(() => {
+        if (!audioCtx) return;
+        osc.frequency.setValueAtTime(notes[noteIdx % notes.length], audioCtx.currentTime);
+        noteIdx++;
+      }, 400);
+
+      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+    }
+
+    function playEngineStartSound() {
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      
+      osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(240, audioCtx.currentTime + 0.4);
+      osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.9);
+
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.9);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.9);
+    }
+
+    // 2. SCENE SETUP
     const skyColor = new THREE.Color(0xdcebff);
     const scene = new THREE.Scene();
     scene.background = skyColor;
@@ -141,7 +227,7 @@
     renderer.toneMappingExposure = 1.15;
     document.body.appendChild(renderer.domElement);
 
-    // 2. LIGHTING
+    // 3. LIGHTING
     const hemiLight = new THREE.HemisphereLight(0xd0e7ff, 0x4a6b38, 1.1);
     hemiLight.position.set(0, 50, 0);
     scene.add(hemiLight);
@@ -162,7 +248,7 @@
     sunMesh.position.set(120, 140, -400);
     scene.add(sunMesh);
 
-    // 3. ROAD & GROUND
+    // 4. ROAD & GROUND
     const roadWidth = 22;
     const roadGeo = new THREE.PlaneGeometry(roadWidth, 2000);
     const roadMat = new THREE.MeshStandardMaterial({ color: 0x333639, roughness: 0.7, metalness: 0.1 });
@@ -207,11 +293,10 @@
       });
     }
 
-    // 4. ENVIRONMENT
+    // 5. ENVIRONMENT
     const houseList = [];
     function createHouse(xPos, zPos) {
       const house = new THREE.Group();
-
       const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe3dedb, roughness: 0.7 });
       const body = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 10), bodyMat);
       body.position.y = 3;
@@ -237,7 +322,7 @@
       createHouse(22, -i * 60 - 30);
     }
 
-    // 5. LOAD PLAYER CAR
+    // 6. PLAYER CAR
     const playerGroup = new THREE.Group();
     scene.add(playerGroup);
 
@@ -277,7 +362,10 @@
 
         const loaderScreen = document.getElementById('loading-screen');
         loaderScreen.style.opacity = '0';
-        setTimeout(() => loaderScreen.style.display = 'none', 500);
+        setTimeout(() => {
+          loaderScreen.style.display = 'none';
+          document.getElementById('showroom-ui').style.display = 'block';
+        }, 500);
       },
       function (xhr) {
         if (xhr.lengthComputable) {
@@ -292,7 +380,7 @@
       }
     );
 
-    // 6. DYNAMICALLY DRIVING & SWERVING TRAFFIC
+    // 7. TRAFFIC OBSTACLES
     const trafficList = [];
     const lanes = [-7, -2.5, 2.5, 7];
 
@@ -334,7 +422,7 @@
       createObstacle(-60 - (i * 45));
     }
 
-    // 7. CANVAS SPEEDOMETER
+    // 8. CANVAS SPEEDOMETER
     const speedoCanvas = document.getElementById('speedo-canvas');
     const ctx = speedoCanvas.getContext('2d');
 
@@ -399,12 +487,17 @@
       ctx.fillText('KM/H', cx, cy + 44);
     }
 
-    // 8. CONTROLS & PHYSICS
+    // 9. GAME STATE & TRANSITION LOGIC
+    let isGameStarted = false;
+    let isTransitioning = false;
+    let transitionProgress = 0;
+    let isGameOver = false;
+
     let speed = 0;
     let score = 0;
-    let isGameOver = false;
     let steerAngle = 0;
     let cameraShake = 0;
+    let showroomTime = 0;
 
     const maxSpeed = 0.85;
     const accel = 0.008;
@@ -414,11 +507,74 @@
     window.addEventListener('keydown', e => { if (e.code in keys) keys[e.code] = true; });
     window.addEventListener('keyup', e => { if (e.code in keys) keys[e.code] = false; });
 
-    // 9. GAME LOOP
+    // Enable audio on first interaction anywhere
+    window.addEventListener('click', () => {
+      initAudio();
+      playBgMusic();
+    }, { once: true });
+
+    function startGame() {
+      if (isTransitioning || isGameStarted) return;
+      
+      initAudio();
+      playBgMusic();
+      playEngineStartSound();
+
+      document.getElementById('showroom-ui').style.display = 'none';
+      isTransitioning = true;
+      transitionProgress = 0;
+    }
+
+    // 10. MAIN ANIMATION LOOP
     function animate() {
-      if (isGameOver) return;
       requestAnimationFrame(animate);
 
+      // SHOWROOM INTRO ORBIT & ZOOM MODE
+      if (!isGameStarted && !isTransitioning) {
+        showroomTime += 0.015;
+        const radius = 7 + Math.sin(showroomTime * 0.8) * 2.5; // Smooth Zoom In & Out
+        
+        camera.position.x = Math.sin(showroomTime) * radius;
+        camera.position.z = Math.cos(showroomTime) * radius + playerGroup.position.z;
+        camera.position.y = 2.5 + Math.sin(showroomTime * 0.5) * 0.8;
+        camera.lookAt(playerGroup.position.x, playerGroup.position.y + 0.8, playerGroup.position.z);
+
+        renderer.render(scene, camera);
+        return;
+      }
+
+      // CINEMATIC TRANSITION FROM SHOWROOM TO GAMEPLAY
+      if (isTransitioning) {
+        transitionProgress += 0.02;
+        
+        const startCamX = camera.position.x;
+        const startCamY = camera.position.y;
+        const startCamZ = camera.position.z;
+
+        const targetCamX = playerGroup.position.x;
+        const targetCamY = playerGroup.position.y + 3.0;
+        const targetCamZ = playerGroup.position.z + 7.5;
+
+        camera.position.x += (targetCamX - startCamX) * 0.08;
+        camera.position.y += (targetCamY - startCamY) * 0.08;
+        camera.position.z += (targetCamZ - startCamZ) * 0.08;
+
+        camera.lookAt(playerGroup.position.x, playerGroup.position.y + 0.8, playerGroup.position.z - 12);
+
+        if (transitionProgress >= 1.0) {
+          isTransitioning = false;
+          isGameStarted = true;
+          document.getElementById('hud').style.opacity = '1';
+          document.getElementById('speedometer-container').style.opacity = '1';
+        }
+
+        renderer.render(scene, camera);
+        return;
+      }
+
+      if (isGameOver) return;
+
+      // DRIVING CONTROLS
       if (keys.ArrowUp) speed = Math.min(speed + accel, maxSpeed);
       else if (keys.ArrowDown) speed = Math.max(speed - (accel * 1.5), -maxSpeed / 3);
       else speed *= friction;
@@ -435,24 +591,20 @@
 
       playerGroup.position.z -= speed;
 
-      // Update AI Traffic (Forward driving + Sudden Lane Swerves)
+      // UPDATE TRAFFIC & COLLISIONS
       trafficList.forEach(t => {
-        // Drive obstacle forward along highway
         t.position.z -= t.userData.speed;
 
-        // Random lane changes / direction shifts
         t.userData.changeTimer--;
         if (t.userData.changeTimer <= 0) {
           t.userData.targetX = lanes[Math.floor(Math.random() * lanes.length)];
-          t.userData.changeTimer = Math.random() * 180 + 90; // Reset timer
+          t.userData.changeTimer = Math.random() * 180 + 90;
         }
 
-        // Smooth steering maneuver towards target lane
         const xDiff = t.userData.targetX - t.position.x;
         t.position.x += xDiff * 0.035;
-        t.rotation.y = -xDiff * 0.15; // Visual lean while swerving
+        t.rotation.y = -xDiff * 0.15;
 
-        // Recycle obstacles far behind player
         if (t.position.z > playerGroup.position.z + 20) {
           t.position.z = playerGroup.position.z - 300 - (Math.random() * 80);
           const newLane = lanes[Math.floor(Math.random() * lanes.length)];
@@ -461,7 +613,6 @@
           t.userData.speed = 0.25 + (Math.random() * 0.18);
         }
 
-        // PHYSICAL IMPACT & COLLISION DETECTION
         const dx = Math.abs(playerGroup.position.x - t.position.x);
         const dz = Math.abs(playerGroup.position.z - t.position.z);
         
@@ -500,7 +651,7 @@
         }
       });
 
-      // DYNAMIC CAMERA
+      // DYNAMIC GAMEPLAY CAMERA
       const targetCamX = playerGroup.position.x * 0.75;
       const targetCamY = playerGroup.position.y + 3.0 + (speed * 0.8);
       const targetCamZ = playerGroup.position.z + 7.5 + (speed * 1.5);
@@ -549,8 +700,6 @@
         t.userData.speed = 0.25 + (Math.random() * 0.18);
         t.userData.changeTimer = Math.random() * 200 + 100;
       });
-
-      animate();
     }
 
     animate();
