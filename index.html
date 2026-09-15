@@ -104,10 +104,10 @@
   </div>
 
   <script>
-    // 1. SCENE & BRIGHT WHITE SKY BACKGROUND
+    // 1. SCENE & BRIGHT SKY ENVIRONMENT
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf4f6f9); // Bright White / Daylight Sky
-    scene.fog = new THREE.FogExp2(0xf4f6f9, 0.004); // Atmospheric light haze
+    scene.background = new THREE.Color(0xf4f6f9);
+    scene.fog = new THREE.FogExp2(0xf4f6f9, 0.004);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -119,7 +119,7 @@
     renderer.toneMappingExposure = 1.0;
     document.body.appendChild(renderer.domElement);
 
-    // 2. DAYLIGHT ILLUMINATION
+    // 2. LIGHTING
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
 
@@ -217,7 +217,7 @@
       createHouse(22, -i * 60 - 30);
     }
 
-    // 5. LOAD PLAYER GLB MODEL
+    // 5. LOAD PLAYER GLB MODEL STRICTLY FROM ./car.glb
     const playerGroup = new THREE.Group();
     scene.add(playerGroup);
 
@@ -240,6 +240,9 @@
         const center = bbox.getCenter(new THREE.Vector3());
         model.position.sub(center);
         model.position.y += (size.y * scaleFactor) / 2;
+
+        // ROTATE CAR 180 DEGREES SO FRONT FACES FORWARD
+        model.rotation.y = Math.PI;
 
         model.traverse((child) => {
           if (child.isMesh) {
@@ -264,7 +267,7 @@
       function (error) {
         console.error('Error loading car.glb:', error);
         document.getElementById('loading-screen').style.color = '#d93025';
-        document.getElementById('loading-screen').innerHTML = '⚠️ COULD NOT FIND "car.glb"<br><br><span style="font-size:14px; font-weight:normal; color:#555;">Verify that your uploaded file is named <b>car.glb</b> (all lowercase) in your repository root.</span>';
+        document.getElementById('loading-screen').innerHTML = '⚠️ COULD NOT FIND "car.glb"<br><br><span style="font-size:14px; font-weight:normal; color:#555;">Please verify that your file is named <b>car.glb</b> (all lowercase) and is uploaded to the root folder of your repository.</span>';
       }
     );
 
@@ -324,8 +327,7 @@
       else if (keys.ArrowDown) speed = Math.max(speed - (accel * 1.5), -maxSpeed / 3);
       else speed *= friction;
 
-      // FIXED STEERING DIRECTION:
-      // Left Key (-) steers Left (-x), Right Key (+) steers Right (+x)
+      // Left Arrow = Move Left (-), Right Arrow = Move Right (+)
       const targetSteer = keys.ArrowLeft ? -0.35 : (keys.ArrowRight ? 0.35 : 0);
       steerAngle += (targetSteer - steerAngle) * 0.12;
 
