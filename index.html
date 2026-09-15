@@ -6,7 +6,7 @@
   <title>Sunny Highway Racer 3D</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { overflow: hidden; background: #87ceeb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { overflow: hidden; background: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     
     #hud {
       position: absolute;
@@ -18,9 +18,9 @@
       pointer-events: none;
     }
     .card {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       border: 1px solid rgba(0, 0, 0, 0.1);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
       backdrop-filter: blur(10px);
       padding: 10px 20px;
       border-radius: 10px;
@@ -32,7 +32,7 @@
     #loading-screen {
       position: absolute;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #eef2f5;
+      background: #f4f6f9;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -49,9 +49,9 @@
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       border: 1px solid #ddd;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
       padding: 35px 45px;
       text-align: center;
       border-radius: 16px;
@@ -81,7 +81,7 @@
 </head>
 <body>
 
-  <div id="loading-screen">LOADING 3D CAR...</div>
+  <div id="loading-screen">LOADING YOUR 3D CAR (car.glb)...</div>
 
   <div id="hud">
     <div class="card">
@@ -102,10 +102,10 @@
   </div>
 
   <script>
-    // 1. SCENE & ENVIRONMENT (Bright & Sunny)
+    // 1. SCENE & WHITE SKY ENVIRONMENT
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xa0d8ef); // Sunny Sky Blue
-    scene.fog = new THREE.FogExp2(0xd6eaf8, 0.005); // Soft Daylight Atmosphere
+    scene.background = new THREE.Color(0xf4f6f9); // Bright White / Light Grey Sky
+    scene.fog = new THREE.FogExp2(0xf4f6f9, 0.004); // Atmospheric white haze
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -114,15 +114,15 @@
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.0;
     document.body.appendChild(renderer.domElement);
 
-    // 2. SUNLIGHT & AMBIENT LIGHTING
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    // 2. LIGHTING
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfffaed, 2.2); // Bright Warm Sun
-    sunLight.position.set(40, 70, 40);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    sunLight.position.set(40, 80, 30);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
@@ -130,21 +130,18 @@
     sunLight.shadow.camera.far = 250;
     scene.add(sunLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8d99ae, 0.8);
-    scene.add(hemiLight);
-
-    // 3. REALISTIC ROAD & TERRAIN
+    // 3. ROAD & GROUND
     const roadWidth = 22;
     const roadGeo = new THREE.PlaneGeometry(roadWidth, 2000);
-    const roadMat = new THREE.MeshStandardMaterial({ color: 0x3a3d40, roughness: 0.8 }); // Dark Asphalt
+    const roadMat = new THREE.MeshStandardMaterial({ color: 0x3d4043, roughness: 0.8 });
     const road = new THREE.Mesh(roadGeo, roadMat);
     road.rotation.x = -Math.PI / 2;
     road.receiveShadow = true;
     scene.add(road);
 
-    // Green Grass Landscape
+    // Green Landscape Belts
     const grassGeo = new THREE.PlaneGeometry(500, 2000);
-    const grassMat = new THREE.MeshStandardMaterial({ color: 0x557a46, roughness: 0.9 });
+    const grassMat = new THREE.MeshStandardMaterial({ color: 0x6e8e59, roughness: 0.9 });
     const grassL = new THREE.Mesh(grassGeo, grassMat);
     grassL.position.set(-261, -0.05, 0);
     grassL.rotation.x = -Math.PI / 2;
@@ -155,12 +152,11 @@
     grassR.rotation.x = -Math.PI / 2;
     scene.add(grassR);
 
-    // White Edge Lines & Yellow Center Lines
+    // Road Markings
     const laneMarkers = [];
     const yellowMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
     const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-    // Center Double Line
     for (let i = 0; i < 80; i++) {
       [-0.4, 0.4].forEach(offset => {
         const line = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 8), yellowMat);
@@ -169,7 +165,6 @@
         scene.add(line);
         laneMarkers.push(line);
       });
-      // Outer Solid White Lines
       [-10.5, 10.5].forEach(x => {
         const edge = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 8), whiteMat);
         edge.rotation.x = -Math.PI / 2;
@@ -179,18 +174,54 @@
       });
     }
 
-    // Guard Rails
-    const railGeo = new THREE.BoxGeometry(0.5, 1.0, 2000);
-    const railMat = new THREE.MeshStandardMaterial({ color: 0xa0a5ab, metalness: 0.8, roughness: 0.3 });
-    const railL = new THREE.Mesh(railGeo, railMat);
-    railL.position.set(-roadWidth / 2 - 0.3, 0.5, 0);
-    scene.add(railL);
+    // 4. ROADSIDE HOUSES
+    const houseList = [];
+    function createHouse(xPos, zPos) {
+      const house = new THREE.Group();
 
-    const railR = new THREE.Mesh(railGeo, railMat);
-    railR.position.set(roadWidth / 2 + 0.3, 0.5, 0);
-    scene.add(railR);
+      // House Body
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0xdedede, roughness: 0.6 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 10), bodyMat);
+      body.position.y = 3;
+      body.castShadow = true;
+      body.receiveShadow = true;
+      house.add(body);
 
-    // 4. PLAYER CAR (car.glb)
+      // Roof
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0xa83232, roughness: 0.5 });
+      const roofGeo = new THREE.ConeGeometry(7.5, 4, 4);
+      const roof = new THREE.Mesh(roofGeo, roofMat);
+      roof.position.y = 8;
+      roof.rotation.y = Math.PI / 4;
+      roof.castShadow = true;
+      house.add(roof);
+
+      // Door
+      const doorMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21 });
+      const door = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3, 0.2), doorMat);
+      door.position.set(0, 1.5, 5.1);
+      house.add(door);
+
+      // Windows
+      const winMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, roughness: 0.2 });
+      [-2.2, 2.2].forEach(wx => {
+        const win = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 0.2), winMat);
+        win.position.set(wx, 4, 5.1);
+        house.add(win);
+      });
+
+      house.position.set(xPos, 0, zPos);
+      scene.add(house);
+      houseList.push(house);
+    }
+
+    // Spawn Houses along left and right sides
+    for (let i = 0; i < 30; i++) {
+      createHouse(-22, -i * 60);
+      createHouse(22, -i * 60 - 30);
+    }
+
+    // 5. LOAD PLAYER GLB MODEL
     const playerGroup = new THREE.Group();
     scene.add(playerGroup);
 
@@ -228,16 +259,16 @@
       function (xhr) {
         if (xhr.lengthComputable) {
           const percent = (xhr.loaded / xhr.total) * 100;
-          document.getElementById('loading-screen').innerText = 'LOADING 3D CAR: ' + Math.round(percent) + '%';
+          document.getElementById('loading-screen').innerText = 'LOADING YOUR 3D CAR: ' + Math.round(percent) + '%';
         }
       },
       function (error) {
         console.error('Error loading car.glb:', error);
-        document.getElementById('loading-screen').innerText = 'Error: Make sure car.glb is uploaded to repository root!';
+        document.getElementById('loading-screen').innerText = 'Error: Ensure car.glb is uploaded to repository root!';
       }
     );
 
-    // 5. TRAFFIC VEHICLES
+    // 6. TRAFFIC OBSTACLES
     const trafficList = [];
     const lanes = [-7, -2.5, 2.5, 7];
 
@@ -267,53 +298,63 @@
     }
 
     for (let i = 0; i < 9; i++) {
-      createObstacle(-60 - (i * 40));
+      createObstacle(-60 - (i * 45));
     }
 
-    // 6. CONTROLS & PHYSICS
+    // 7. CONTROLS & SMOOTH PROGRESSIVE ACCELERATION PHYSICS
     let speed = 0;
     let score = 0;
     let isGameOver = false;
     let steerAngle = 0;
 
-    const maxSpeed = 1.6;
-    const accel = 0.03;
-    const friction = 0.96;
+    // Controlled speed limits
+    const maxSpeed = 0.85; // Moderate top speed
+    const accel = 0.008;    // Gradual, smooth acceleration
+    const friction = 0.985;  // Smooth coasting deceleration
     const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
 
     window.addEventListener('keydown', e => { if (e.code in keys) keys[e.code] = true; });
     window.addEventListener('keyup', e => { if (e.code in keys) keys[e.code] = false; });
 
-    // 7. GAME ANIMATION LOOP
+    // 8. GAME LOOP
     function animate() {
       if (isGameOver) return;
       requestAnimationFrame(animate);
 
+      // Progressive speed acceleration & braking
       if (keys.ArrowUp) speed = Math.min(speed + accel, maxSpeed);
-      else if (keys.ArrowDown) speed = Math.max(speed - accel, -maxSpeed / 2);
+      else if (keys.ArrowDown) speed = Math.max(speed - (accel * 1.5), -maxSpeed / 3);
       else speed *= friction;
 
-      const targetSteer = keys.ArrowLeft ? 0.35 : (keys.ArrowRight ? -0.35 : 0);
-      steerAngle += (targetSteer - steerAngle) * 0.15;
+      // CORRECTED STEERING: Left key moves left (-), Right key moves right (+)
+      const targetSteer = keys.ArrowLeft ? -0.35 : (keys.ArrowRight ? 0.35 : 0);
+      steerAngle += (targetSteer - steerAngle) * 0.12;
 
-      if (Math.abs(speed) > 0.01) {
-        playerGroup.position.x += steerAngle * speed * 0.75;
+      if (Math.abs(speed) > 0.005) {
+        playerGroup.position.x += steerAngle * speed * 0.8;
         playerGroup.position.x = Math.max(-9.2, Math.min(9.2, playerGroup.position.x));
-        playerGroup.rotation.z = steerAngle * 0.10;
-        playerGroup.rotation.y = steerAngle * 0.06;
+        playerGroup.rotation.z = -steerAngle * 0.10;
+        playerGroup.rotation.y = -steerAngle * 0.06;
       }
 
       playerGroup.position.z -= speed;
 
-      if (speed > 0.05) {
-        score += Math.round(speed * 15);
+      if (speed > 0.02) {
+        score += Math.round(speed * 10);
         document.getElementById('score-display').innerText = score;
       }
-      document.getElementById('speed-display').innerText = Math.round(Math.abs(speed) * 180);
+      document.getElementById('speed-display').innerText = Math.round(Math.abs(speed) * 140);
 
-      // Track recycling
+      // Recycle Road Markings
       laneMarkers.forEach(m => {
         if (m.position.z > playerGroup.position.z + 10) m.position.z -= 1800;
+      });
+
+      // Recycle Houses
+      houseList.forEach(h => {
+        if (h.position.z > playerGroup.position.z + 30) {
+          h.position.z -= 1800;
+        }
       });
 
       // Traffic recycling & collision
