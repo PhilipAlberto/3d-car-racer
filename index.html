@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neon Horizon - 3D Racer</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #050510;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    #ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      font-size: 22px;
+      font-weight: bold;
+      pointer-events: none;
+    }
+  </style>
+  <!-- Load Three.js Engine & GLTF Loader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+
+  <div id="ui">SPEED: <span id="speedometer">0</span> KM/H</div>
+
+  <script>
+    // 1. SETUP SCENE & CAMERA
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050510, 0.015);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // 2. LIGHTING
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0x00ffff, 1.5);
+    dirLight.position.set(10, 20, 10);
+    scene.add(dirLight);
+
+    // 3. ROAD & ENVIRONMENT GRID
+    const gridHelper = new THREE.GridHelper(500, 100, 0xff007f, 0x00ffff);
+    gridHelper.position.y = -0.01;
+    scene.add(gridHelper);
+
+    const roadGeo = new THREE.PlaneGeometry(16, 1000);
+    const roadMat = new THREE.MeshBasicMaterial({ color: 0x111122, side: THREE.DoubleSide });
+    const road = new THREE.Mesh(roadGeo, roadMat);
+    road.rotation.x = -Math.PI / 2;
+    scene.add(road);
+
+    // 4. PREPARE CAR GROUP
+    const carGroup = new THREE.Group();
+    scene.add(carGroup);
+
+    // 5. LOAD YOUR UPLOADED CAR MODEL
+    const loader = new THREE.GLTFLoader();
+    
+    loader.load(
+      './car.glb', // Points to car.glb uploaded in the same GitHub folder
+      function (gltf) {
+        const carModel = gltf.scene;
+        
+        // Adjust these numbers if the car is too big/small or facing backward
+        carModel.scale.set(1, 1, 1); 
+        carModel.position.set(0, 0, 0); 
+        carModel.rotation.y = Math.PI; 
+
+        carGroup.add(carModel);
+        console.log("Your car.glb Loaded Successfully!");
+      },
+      undefined,
+      function (error) {
+        console.error("Error loading car.glb:", error);
+      }
+    );
+
+    // 6. MOVEMENT SETUP
+    let speed = 0;
+    const maxSpeed = 1.2;
+    const acceleration = 0.02;
+    const friction = 0.96;
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+
+    // 7. KEYBOARD CONTROLS
+    window.addEventListener('keydown', (e) => { if (e.code in keys) keys[e.code] = true; });
+    window.addEventListener('keyup', (e) => { if (e.code in keys) keys[e.code] = false; });
+
+    // 8. GAME LOOP
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (keys.ArrowUp) speed = Math.min(speed + acceleration, maxSpeed);
+      else if (keys.ArrowDown) speed = Math.max(speed - acceleration, -maxSpeed / 2);
+      else speed *= friction;
+
+      if (Math.abs(speed) > 0.01) {
+        if (keys.ArrowLeft && carGroup.position.x > -7) carGroup.position.x -= 0.15;
+        if (keys.ArrowRight && carGroup.position.x < 7) carGroup.position.x += 0.15;
+      }
+
+      carGroup.position.z -= speed;
+
+      camera.position.x = carGroup.position.x;
+      camera.position.y = carGroup.position.y + 3;
+      camera.position.z = carGroup.position.z + 8;
+      camera.lookAt(carGroup.position.x, carGroup.position.y + 1, carGroup.position.z - 5);
+
+      document.getElementById('speedometer').innerText = Math.round(Math.abs(speed) * 180);
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
