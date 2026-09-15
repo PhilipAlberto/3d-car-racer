@@ -42,6 +42,8 @@
       font-weight: bold;
       z-index: 200;
       transition: opacity 0.5s ease;
+      text-align: center;
+      padding: 20px;
     }
 
     #game-over {
@@ -102,10 +104,10 @@
   </div>
 
   <script>
-    // 1. SCENE & WHITE SKY ENVIRONMENT
+    // 1. SCENE & BRIGHT WHITE SKY BACKGROUND
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf4f6f9); // Bright White / Light Grey Sky
-    scene.fog = new THREE.FogExp2(0xf4f6f9, 0.004); // Atmospheric white haze
+    scene.background = new THREE.Color(0xf4f6f9); // Bright White / Daylight Sky
+    scene.fog = new THREE.FogExp2(0xf4f6f9, 0.004); // Atmospheric light haze
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -117,11 +119,11 @@
     renderer.toneMappingExposure = 1.0;
     document.body.appendChild(renderer.domElement);
 
-    // 2. LIGHTING
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    // 2. DAYLIGHT ILLUMINATION
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
     sunLight.position.set(40, 80, 30);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
@@ -139,7 +141,6 @@
     road.receiveShadow = true;
     scene.add(road);
 
-    // Green Landscape Belts
     const grassGeo = new THREE.PlaneGeometry(500, 2000);
     const grassMat = new THREE.MeshStandardMaterial({ color: 0x6e8e59, roughness: 0.9 });
     const grassL = new THREE.Mesh(grassGeo, grassMat);
@@ -179,7 +180,6 @@
     function createHouse(xPos, zPos) {
       const house = new THREE.Group();
 
-      // House Body
       const bodyMat = new THREE.MeshStandardMaterial({ color: 0xdedede, roughness: 0.6 });
       const body = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 10), bodyMat);
       body.position.y = 3;
@@ -187,7 +187,6 @@
       body.receiveShadow = true;
       house.add(body);
 
-      // Roof
       const roofMat = new THREE.MeshStandardMaterial({ color: 0xa83232, roughness: 0.5 });
       const roofGeo = new THREE.ConeGeometry(7.5, 4, 4);
       const roof = new THREE.Mesh(roofGeo, roofMat);
@@ -196,13 +195,11 @@
       roof.castShadow = true;
       house.add(roof);
 
-      // Door
       const doorMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21 });
       const door = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3, 0.2), doorMat);
       door.position.set(0, 1.5, 5.1);
       house.add(door);
 
-      // Windows
       const winMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, roughness: 0.2 });
       [-2.2, 2.2].forEach(wx => {
         const win = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 0.2), winMat);
@@ -215,7 +212,6 @@
       houseList.push(house);
     }
 
-    // Spawn Houses along left and right sides
     for (let i = 0; i < 30; i++) {
       createHouse(-22, -i * 60);
       createHouse(22, -i * 60 - 30);
@@ -225,9 +221,11 @@
     const playerGroup = new THREE.Group();
     scene.add(playerGroup);
 
+    let isModelLoaded = false;
+
     const gltfLoader = new THREE.GLTFLoader();
     gltfLoader.load(
-      './car.glb',
+      './car.glb?v=' + Date.now(),
       function (gltf) {
         const model = gltf.scene;
 
@@ -251,6 +249,7 @@
         });
 
         playerGroup.add(model);
+        isModelLoaded = true;
 
         const loaderScreen = document.getElementById('loading-screen');
         loaderScreen.style.opacity = '0';
@@ -264,7 +263,8 @@
       },
       function (error) {
         console.error('Error loading car.glb:', error);
-        document.getElementById('loading-screen').innerText = 'Error: Ensure car.glb is uploaded to repository root!';
+        document.getElementById('loading-screen').style.color = '#d93025';
+        document.getElementById('loading-screen').innerHTML = '⚠️ COULD NOT FIND "car.glb"<br><br><span style="font-size:14px; font-weight:normal; color:#555;">Verify that your uploaded file is named <b>car.glb</b> (all lowercase) in your repository root.</span>';
       }
     );
 
@@ -301,16 +301,15 @@
       createObstacle(-60 - (i * 45));
     }
 
-    // 7. CONTROLS & SMOOTH PROGRESSIVE ACCELERATION PHYSICS
+    // 7. CONTROLS & PHYSICS
     let speed = 0;
     let score = 0;
     let isGameOver = false;
     let steerAngle = 0;
 
-    // Controlled speed limits
-    const maxSpeed = 0.85; // Moderate top speed
-    const accel = 0.008;    // Gradual, smooth acceleration
-    const friction = 0.985;  // Smooth coasting deceleration
+    const maxSpeed = 0.85;
+    const accel = 0.008;
+    const friction = 0.985;
     const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
 
     window.addEventListener('keydown', e => { if (e.code in keys) keys[e.code] = true; });
@@ -321,16 +320,16 @@
       if (isGameOver) return;
       requestAnimationFrame(animate);
 
-      // Progressive speed acceleration & braking
       if (keys.ArrowUp) speed = Math.min(speed + accel, maxSpeed);
       else if (keys.ArrowDown) speed = Math.max(speed - (accel * 1.5), -maxSpeed / 3);
       else speed *= friction;
 
-      // CORRECTED STEERING: Left key moves left (-), Right key moves right (+)
+      // FIXED STEERING DIRECTION:
+      // Left Key (-) steers Left (-x), Right Key (+) steers Right (+x)
       const targetSteer = keys.ArrowLeft ? -0.35 : (keys.ArrowRight ? 0.35 : 0);
       steerAngle += (targetSteer - steerAngle) * 0.12;
 
-      if (Math.abs(speed) > 0.005) {
+      if (Math.abs(speed) > 0.005 && isModelLoaded) {
         playerGroup.position.x += steerAngle * speed * 0.8;
         playerGroup.position.x = Math.max(-9.2, Math.min(9.2, playerGroup.position.x));
         playerGroup.rotation.z = -steerAngle * 0.10;
@@ -372,7 +371,7 @@
         }
       });
 
-      // Smooth Camera Follow
+      // Camera Follow
       camera.position.x += (playerGroup.position.x - camera.position.x) * 0.1;
       camera.position.y = playerGroup.position.y + 3.2;
       camera.position.z = playerGroup.position.z + 8.0;
