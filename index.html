@@ -3,1683 +3,2921 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Sunny Highway Racer 3D</title>
+<title>3D Asset Laboratory</title>
 
 <style>
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-html,
-body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #87b9df;
-    font-family: Arial, sans-serif;
-}
-
-canvas {
-    display: block;
-}
-
-/* =========================
-   LOADING
-========================= */
-
-#loading {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    background: #07111c;
-    color: white;
-}
-
-#loading h1 {
-    font-size: 42px;
-    letter-spacing: 4px;
-}
-
-#loading p {
-    margin-top: 12px;
-    color: #8ba6bb;
-}
-
-#loading-bar {
-    width: 300px;
-    height: 5px;
-
-    margin-top: 25px;
-
-    background: #1d2b38;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-#loading-progress {
-    width: 0%;
-    height: 100%;
-    background: #2196f3;
-}
-
-/* =========================
-   MENU
-========================= */
-
-#menu {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-
-    display: none;
-    align-items: center;
-    justify-content: center;
-
-    pointer-events: none;
-}
-
-.menu-card {
-    pointer-events: auto;
-
-    min-width: 300px;
-    padding: 30px;
-
-    text-align: center;
-
-    background: rgba(4, 12, 20, 0.88);
-    color: white;
-
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 16px;
-
-    backdrop-filter: blur(10px);
-}
-
-.menu-card h1 {
-    font-size: 30px;
-    margin-bottom: 8px;
-}
-
-.menu-card p {
-    color: #8ca5b7;
-    margin-bottom: 25px;
-}
-
-button {
-    border: 0;
-    border-radius: 9px;
-
-    padding: 13px 25px;
-
-    background: #168df0;
-    color: white;
-
-    font-size: 15px;
-    font-weight: bold;
-
-    cursor: pointer;
-}
-
-button:hover {
-    background: #35a7ff;
-}
-
-/* =========================
-   HUD
-========================= */
-
-#hud {
-    position: fixed;
-    inset: 0;
-
-    z-index: 50;
-
-    display: none;
-
-    pointer-events: none;
-
-    color: white;
-}
-
-#score-box {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-
-    padding: 12px 18px;
-
-    background: rgba(0,0,0,0.55);
-
-    border-radius: 10px;
-
-    font-size: 18px;
-}
-
-#speed-box {
-    position: absolute;
-    bottom: 25px;
-    left: 25px;
-
-    padding: 15px 20px;
-
-    background: rgba(0,0,0,0.65);
-
-    border-radius: 12px;
-
-    font-size: 24px;
-    font-weight: bold;
-}
-
-#help {
-    position: absolute;
-    right: 20px;
-    bottom: 20px;
-
-    padding: 10px 14px;
-
-    background: rgba(0,0,0,0.55);
-
-    border-radius: 8px;
-
-    color: #c5d5df;
-    font-size: 12px;
-}
-
-/* =========================
-   GAME OVER
-========================= */
-
-#game-over {
-    position: fixed;
-    inset: 0;
-
-    z-index: 200;
-
-    display: none;
-
-    align-items: center;
-    justify-content: center;
-
-    background: rgba(0,0,0,0.65);
-}
-
-.game-over-card {
-    padding: 35px;
-
-    width: 330px;
-
-    text-align: center;
-
-    background: #091522;
-
-    color: white;
-
-    border-radius: 15px;
-}
-
-.game-over-card h1 {
-    color: #ff5252;
-    margin-bottom: 15px;
-}
-
-.game-over-card p {
-    margin-bottom: 20px;
-    color: #a6bac9;
-}
-
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #080b10;
+        color: #e8edf3;
+        font-family:
+            Inter,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Roboto,
+            Arial,
+            sans-serif;
+    }
+
+    button,
+    input {
+        font: inherit;
+    }
+
+    #app {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: 260px 1fr 310px;
+    }
+
+    /* =========================================================
+       SIDEBAR
+    ========================================================= */
+
+    #sidebar {
+        background: #0d1118;
+        border-right: 1px solid #202833;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        z-index: 10;
+    }
+
+    .brand {
+        padding: 22px 20px;
+        border-bottom: 1px solid #202833;
+    }
+
+    .brand h1 {
+        font-size: 19px;
+        letter-spacing: 1px;
+        font-weight: 900;
+    }
+
+    .brand span {
+        color: #46a6ff;
+    }
+
+    .brand p {
+        margin-top: 6px;
+        font-size: 10px;
+        color: #718096;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+
+    #categories {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+    }
+
+    .category {
+        margin-bottom: 18px;
+    }
+
+    .category-title {
+        padding: 7px 8px;
+        color: #718096;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+
+    .asset-button {
+        width: 100%;
+        padding: 9px 10px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        background: transparent;
+        color: #aab5c2;
+        text-align: left;
+        cursor: pointer;
+        font-size: 12px;
+        transition: 0.15s ease;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .asset-button:hover {
+        background: #151c25;
+        color: white;
+    }
+
+    .asset-button.active {
+        background: #162b40;
+        border-color: #255d88;
+        color: #65b7ff;
+    }
+
+    /* =========================================================
+       VIEWPORT
+    ========================================================= */
+
+    #viewport {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        background:
+            radial-gradient(
+                circle at 50% 35%,
+                #202a36 0%,
+                #10161e 45%,
+                #080b10 100%
+            );
+    }
+
+    #canvas-container {
+        position: absolute;
+        inset: 0;
+    }
+
+    canvas {
+        display: block;
+    }
+
+    #topbar {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .asset-title {
+        background: rgba(8, 12, 17, 0.82);
+        border: 1px solid rgba(255,255,255,0.08);
+        backdrop-filter: blur(10px);
+        border-radius: 9px;
+        padding: 11px 14px;
+    }
+
+    .asset-title strong {
+        display: block;
+        font-size: 14px;
+    }
+
+    .asset-title span {
+        display: block;
+        margin-top: 3px;
+        font-size: 10px;
+        color: #718096;
+    }
+
+    #fps {
+        background: rgba(8, 12, 17, 0.82);
+        border: 1px solid rgba(255,255,255,0.08);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        padding: 9px 12px;
+        font-size: 11px;
+        color: #8fd0ff;
+    }
+
+    /* =========================================================
+       LOADING
+    ========================================================= */
+
+    #loading {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 20;
+        display: none;
+        text-align: center;
+        pointer-events: none;
+    }
+
+    .loader-ring {
+        width: 42px;
+        height: 42px;
+        border: 3px solid rgba(255,255,255,0.12);
+        border-top-color: #43a8ff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: auto;
+    }
+
+    #loading-text {
+        margin-top: 12px;
+        font-size: 11px;
+        color: #91a0af;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* =========================================================
+       ERROR
+    ========================================================= */
+
+    #error-box {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(520px, 80%);
+        display: none;
+        padding: 22px;
+        background: rgba(38, 12, 15, 0.96);
+        border: 1px solid #7d3037;
+        border-radius: 12px;
+        z-index: 30;
+    }
+
+    #error-box h3 {
+        color: #ff7e86;
+        font-size: 15px;
+        margin-bottom: 9px;
+    }
+
+    #error-box p {
+        color: #bd9da0;
+        font-size: 11px;
+        line-height: 1.7;
+        word-break: break-word;
+    }
+
+    #error-path {
+        margin-top: 10px;
+        padding: 9px;
+        background: rgba(0,0,0,0.25);
+        border-radius: 6px;
+        color: #e4b7ba;
+        font-family: monospace;
+        font-size: 10px;
+    }
+
+    /* =========================================================
+       VIEWPORT CONTROLS
+    ========================================================= */
+
+    #viewport-controls {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        display: flex;
+        gap: 7px;
+        z-index: 5;
+    }
+
+    .control-btn {
+        border: 1px solid #293541;
+        background: rgba(10,15,21,0.88);
+        color: #aeb9c5;
+        border-radius: 7px;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-size: 10px;
+        backdrop-filter: blur(8px);
+    }
+
+    .control-btn:hover {
+        color: white;
+        border-color: #43637b;
+    }
+
+    .control-btn.active {
+        background: #17324a;
+        border-color: #3278a8;
+        color: #70c2ff;
+    }
+
+    #instructions {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        padding: 9px 11px;
+        background: rgba(10,15,21,0.78);
+        border: 1px solid #202a34;
+        border-radius: 7px;
+        color: #687888;
+        font-size: 10px;
+        z-index: 5;
+    }
+
+    /* =========================================================
+       INSPECTOR
+    ========================================================= */
+
+    #inspector {
+        background: #0d1118;
+        border-left: 1px solid #202833;
+        overflow-y: auto;
+        min-width: 0;
+        z-index: 10;
+    }
+
+    .panel {
+        padding: 17px;
+        border-bottom: 1px solid #202833;
+    }
+
+    .panel-title {
+        margin-bottom: 13px;
+        font-size: 10px;
+        font-weight: 900;
+        color: #718096;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+
+    .file-name {
+        padding: 10px;
+        background: #111820;
+        border: 1px solid #202934;
+        border-radius: 7px;
+        color: #b9c5d1;
+        font-family: monospace;
+        font-size: 10px;
+        word-break: break-all;
+        line-height: 1.5;
+    }
+
+    .status {
+        margin-top: 9px;
+        font-size: 10px;
+        color: #5fd08a;
+    }
+
+    .status.loading {
+        color: #67baff;
+    }
+
+    .status.error {
+        color: #ff7d86;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+    }
+
+    .stat {
+        padding: 10px;
+        background: #111820;
+        border: 1px solid #202934;
+        border-radius: 7px;
+    }
+
+    .stat-label {
+        font-size: 8px;
+        color: #687888;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-value {
+        margin-top: 4px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #dbe5ee;
+        word-break: break-word;
+    }
+
+    .dimension-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+    }
+
+    .dimension {
+        padding: 9px 5px;
+        text-align: center;
+        background: #111820;
+        border: 1px solid #202934;
+        border-radius: 7px;
+    }
+
+    .dimension label {
+        display: block;
+        font-size: 8px;
+        color: #687888;
+    }
+
+    .dimension strong {
+        display: block;
+        margin-top: 3px;
+        font-size: 11px;
+    }
+
+    .slider-row {
+        margin-top: 13px;
+    }
+
+    .slider-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        font-size: 10px;
+        color: #8b9aaa;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        accent-color: #42a9ff;
+    }
+
+    .action-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+        margin-top: 8px;
+    }
+
+    .action {
+        padding: 9px;
+        border-radius: 7px;
+        border: 1px solid #293541;
+        background: #111820;
+        color: #9ba9b7;
+        cursor: pointer;
+        font-size: 10px;
+    }
+
+    .action:hover {
+        color: white;
+        border-color: #3b5367;
+    }
+
+    .animation-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .animation-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px;
+        background: #111820;
+        border: 1px solid #202934;
+        border-radius: 7px;
+    }
+
+    .animation-name {
+        font-size: 9px;
+        color: #a9b5c1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .animation-play {
+        flex-shrink: 0;
+        border: 0;
+        border-radius: 5px;
+        background: #18344a;
+        color: #75c5ff;
+        padding: 5px 8px;
+        cursor: pointer;
+        font-size: 9px;
+    }
+
+    .empty {
+        color: #596875;
+        font-size: 10px;
+        line-height: 1.6;
+    }
+
+    .notice {
+        padding: 10px;
+        background: #121a22;
+        border: 1px solid #222f3b;
+        border-radius: 7px;
+        color: #708090;
+        font-size: 9px;
+        line-height: 1.6;
+    }
+
+    /* =========================================================
+       MOBILE
+    ========================================================= */
+
+    @media (max-width: 950px) {
+        #app {
+            grid-template-columns: 210px 1fr;
+        }
+
+        #inspector {
+            display: none;
+        }
+    }
+
+    @media (max-width: 650px) {
+        #app {
+            grid-template-columns: 1fr;
+        }
+
+        #sidebar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 210px;
+            transform: translateX(-100%);
+            transition: transform 0.2s ease;
+            z-index: 50;
+        }
+
+        #sidebar.open {
+            transform: translateX(0);
+        }
+
+        #viewport {
+            grid-column: 1;
+        }
+
+        #mobile-menu {
+            display: block !important;
+        }
+
+        #instructions {
+            display: none;
+        }
+    }
+
+    #mobile-menu {
+        display: none;
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        z-index: 40;
+        border: 1px solid #293541;
+        background: rgba(10,15,21,0.9);
+        color: white;
+        padding: 9px 12px;
+        border-radius: 7px;
+    }
 </style>
 
-<!-- THREE.JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<!-- GLB LOADER -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
 </head>
 
 <body>
 
+<div id="app">
 
-<!-- =========================
-     LOADING SCREEN
-========================= -->
+    <!-- =====================================================
+         LEFT SIDEBAR
+    ====================================================== -->
 
-<div id="loading">
+    <aside id="sidebar">
 
-    <h1>SUNNY HIGHWAY</h1>
+        <div class="brand">
+            <h1>3D ASSET <span>LAB</span></h1>
+            <p>Asset inspection environment</p>
+        </div>
 
-    <p id="loading-text">
-        Starting 3D engine...
-    </p>
+        <div id="categories"></div>
 
-    <div id="loading-bar">
-        <div id="loading-progress"></div>
-    </div>
-
-</div>
+    </aside>
 
 
-<!-- =========================
-     START MENU
-========================= -->
+    <!-- =====================================================
+         VIEWPORT
+    ====================================================== -->
 
-<div id="menu">
+    <main id="viewport">
 
-    <div class="menu-card">
-
-        <h1>SUNNY HIGHWAY</h1>
-
-        <p>
-            3D HIGHWAY RACER
-        </p>
-
-        <button onclick="startGame()">
-            START RACE
+        <button id="mobile-menu" onclick="toggleSidebar()">
+            ☰ Assets
         </button>
 
-    </div>
+        <div id="canvas-container"></div>
 
-</div>
+        <div id="topbar">
+
+            <div class="asset-title">
+                <strong id="current-name">Loading...</strong>
+                <span id="current-category">Asset Laboratory</span>
+            </div>
+
+            <div id="fps">
+                FPS: --
+            </div>
+
+        </div>
+
+        <div id="loading">
+
+            <div class="loader-ring"></div>
+
+            <div id="loading-text">
+                Loading model...
+            </div>
+
+        </div>
+
+        <div id="error-box">
+
+            <h3>MODEL LOAD FAILED</h3>
+
+            <p id="error-message">
+                The selected model could not be loaded.
+            </p>
+
+            <div id="error-path"></div>
+
+        </div>
+
+        <div id="viewport-controls">
+
+            <button class="control-btn" id="wire-btn" onclick="toggleWireframe()">
+                Wireframe
+            </button>
+
+            <button class="control-btn active" id="grid-btn" onclick="toggleGrid()">
+                Grid
+            </button>
+
+            <button class="control-btn" id="shadow-btn" onclick="toggleShadows()">
+                Shadows
+            </button>
+
+            <button class="control-btn" onclick="frameModel()">
+                Frame
+            </button>
+
+            <button class="control-btn" onclick="resetCamera()">
+                Reset
+            </button>
+
+        </div>
+
+        <div id="instructions">
+            Drag = orbit &nbsp; • &nbsp; Wheel = zoom &nbsp; • &nbsp; Right drag = pan
+        </div>
+
+    </main>
 
 
-<!-- =========================
-     HUD
-========================= -->
+    <!-- =====================================================
+         INSPECTOR
+    ====================================================== -->
 
-<div id="hud">
+    <aside id="inspector">
 
-    <div id="score-box">
-        Score: <span id="score">0</span>
-    </div>
+        <section class="panel">
 
-    <div id="speed-box">
-        <span id="speed">0</span> KM/H
-    </div>
+            <div class="panel-title">
+                Selected Asset
+            </div>
 
-    <div id="help">
-        W / ↑ Accelerate &nbsp; | &nbsp;
-        S / ↓ Brake &nbsp; | &nbsp;
-        A / D Steer
-    </div>
+            <div class="file-name" id="file-name">
+                —
+            </div>
 
-</div>
+            <div class="status" id="status">
+                Ready
+            </div>
+
+        </section>
 
 
-<!-- =========================
-     GAME OVER
-========================= -->
+        <section class="panel">
 
-<div id="game-over">
+            <div class="panel-title">
+                Model Statistics
+            </div>
 
-    <div class="game-over-card">
+            <div class="stats-grid">
 
-        <h1>CRASHED</h1>
+                <div class="stat">
+                    <div class="stat-label">Meshes</div>
+                    <div class="stat-value" id="mesh-count">—</div>
+                </div>
 
-        <p>
-            Final Score:
-            <strong id="final-score">0</strong>
-        </p>
+                <div class="stat">
+                    <div class="stat-label">Triangles</div>
+                    <div class="stat-value" id="triangle-count">—</div>
+                </div>
 
-        <button onclick="restartGame()">
-            DRIVE AGAIN
-        </button>
+                <div class="stat">
+                    <div class="stat-label">Materials</div>
+                    <div class="stat-value" id="material-count">—</div>
+                </div>
 
-    </div>
+                <div class="stat">
+                    <div class="stat-label">Textures</div>
+                    <div class="stat-value" id="texture-count">—</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">Animations</div>
+                    <div class="stat-value" id="animation-count">—</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">Load Time</div>
+                    <div class="stat-value" id="load-time">—</div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-title">
+                Dimensions
+            </div>
+
+            <div class="dimension-row">
+
+                <div class="dimension">
+                    <label>WIDTH</label>
+                    <strong id="dim-x">—</strong>
+                </div>
+
+                <div class="dimension">
+                    <label>HEIGHT</label>
+                    <strong id="dim-y">—</strong>
+                </div>
+
+                <div class="dimension">
+                    <label>DEPTH</label>
+                    <strong id="dim-z">—</strong>
+                </div>
+
+            </div>
+
+            <div class="notice" style="margin-top:8px;">
+                Dimensions are measured from the imported GLB before presentation scaling.
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-title">
+                Transform
+            </div>
+
+            <div class="slider-row">
+
+                <div class="slider-header">
+                    <span>Scale</span>
+                    <strong id="scale-value">1.00×</strong>
+                </div>
+
+                <input
+                    id="scale-slider"
+                    type="range"
+                    min="0.05"
+                    max="5"
+                    step="0.01"
+                    value="1"
+                    oninput="changeScale(this.value)"
+                >
+
+            </div>
+
+            <div class="slider-row">
+
+                <div class="slider-header">
+                    <span>Rotation Y</span>
+                    <strong id="rotation-value">0°</strong>
+                </div>
+
+                <input
+                    id="rotation-slider"
+                    type="range"
+                    min="-180"
+                    max="180"
+                    step="1"
+                    value="0"
+                    oninput="changeRotation(this.value)"
+                >
+
+            </div>
+
+            <div class="action-row">
+
+                <button class="action" onclick="resetTransform()">
+                    Reset Transform
+                </button>
+
+                <button class="action" onclick="groundModel()">
+                    Ground Model
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-title">
+                Animations
+            </div>
+
+            <div id="animations" class="animation-list">
+                <div class="empty">
+                    No animations detected.
+                </div>
+            </div>
+
+            <div class="action-row">
+
+                <button class="action" onclick="stopAnimations()">
+                    Stop
+                </button>
+
+                <button class="action" onclick="playFirstAnimation()">
+                    Play First
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-title">
+                Test Notes
+            </div>
+
+            <div class="notice">
+                Only one GLB is loaded at a time. This is intentional.
+                It keeps memory usage low and lets us inspect every asset
+                individually before building the actual game world.
+            </div>
+
+        </section>
+
+    </aside>
 
 </div>
 
 
 <script>
+/* ============================================================
+   3D ASSET LABORATORY
+   ============================================================
 
-/* =========================================================
-   SUNNY HIGHWAY RACER
-   STABLE BASE VERSION
-========================================================= */
+   IMPORTANT:
+   Assets are referenced from the repository ROOT because that is
+   where the current GitHub repository stores them.
+
+   We deliberately load ONE asset at a time.
+============================================================ */
 
 
-/* =========================================================
-   VARIABLES
-========================================================= */
+/* ============================================================
+   1. ASSET REGISTRY
+============================================================ */
+
+const ASSETS = {
+
+    "Cars": [
+        {
+            name: "Default Car",
+            file: "car.glb"
+        },
+        {
+            name: "Car 1",
+            file: "Car (1).glb"
+        },
+        {
+            name: "Car 3",
+            file: "Car (3).glb"
+        },
+        {
+            name: "Car 6",
+            file: "Car (6).glb"
+        },
+        {
+            name: "Car 7",
+            file: "Car (7).glb"
+        }
+    ],
+
+    "Traffic Vehicles": [
+        {
+            name: "Traffic Vehicle 1",
+            file: "T-vehicle (1).glb"
+        },
+        {
+            name: "Traffic Vehicle 2",
+            file: "T-vehicle (2).glb"
+        },
+        {
+            name: "Traffic Vehicle 3",
+            file: "T-vehicle (3).glb"
+        }
+    ],
+
+    "Buildings": [
+        {
+            name: "Building 1",
+            file: "Building (1).glb"
+        },
+        {
+            name: "Building 2",
+            file: "Building (2).glb"
+        },
+        {
+            name: "Building 3",
+            file: "Building (3).glb"
+        },
+        {
+            name: "Building 4",
+            file: "Building (4).glb"
+        },
+        {
+            name: "Building 5",
+            file: "Building (5).glb"
+        },
+        {
+            name: "Building 6",
+            file: "Building (6).glb"
+        },
+        {
+            name: "Building 7",
+            file: "Building (7).glb"
+        },
+        {
+            name: "Building 8",
+            file: "Building (8).glb"
+        },
+        {
+            name: "Building 9",
+            file: "Building (9).glb"
+        },
+        {
+            name: "Building 10",
+            file: "Building (10).glb"
+        },
+        {
+            name: "Building 11",
+            file: "Building (11).glb"
+        },
+        {
+            name: "Building 12",
+            file: "Building (12).glb"
+        },
+        {
+            name: "Building 13",
+            file: "Building (13).glb"
+        },
+        {
+            name: "Building 14",
+            file: "Building (14).glb"
+        },
+        {
+            name: "Building 19",
+            file: "Building (19).glb"
+        },
+        {
+            name: "Building 20",
+            file: "Building (20).glb"
+        },
+        {
+            name: "Building 24",
+            file: "Building (24).glb"
+        }
+    ],
+
+    "Trees": [
+        {
+            name: "Tree 2",
+            file: "Tree (2).glb"
+        },
+        {
+            name: "Tree 3",
+            file: "Tree (3).glb"
+        },
+        {
+            name: "Tree 4",
+            file: "Tree (4).glb"
+        },
+        {
+            name: "Tree 5",
+            file: "Tree (5).glb"
+        },
+        {
+            name: "Tree 6",
+            file: "Tree (6).glb"
+        },
+        {
+            name: "Tree 8",
+            file: "Tree (8).glb"
+        }
+    ],
+
+    "Aeroplanes": [
+        {
+            name: "Aeroplane 1",
+            file: "Aeroplane (1).glb"
+        },
+        {
+            name: "Aeroplane 2",
+            file: "Aeroplane (2).glb"
+        },
+        {
+            name: "Aeroplane 3",
+            file: "Aeroplane (3).glb"
+        }
+    ],
+
+    "Pedestrians": [
+        {
+            name: "Pedestrian 1",
+            file: "Ped (1).glb"
+        },
+        {
+            name: "Pedestrian 2",
+            file: "Ped (2).glb"
+        }
+    ],
+
+    "Infrastructure": [
+        {
+            name: "Road",
+            file: "Road.glb"
+        },
+        {
+            name: "Bridge",
+            file: "bridge.glb"
+        },
+        {
+            name: "Airport",
+            file: "Airport 2.glb"
+        }
+    ],
+
+    "Animated": [
+        {
+            name: "Animated Character 2",
+            file: "Animated (2).glb"
+        }
+    ]
+
+};
+
+
+/* ============================================================
+   2. THREE.JS GLOBALS
+============================================================ */
 
 let scene;
 let camera;
 let renderer;
-
+let controls;
 let loader;
 
-let player;
-let playerModel;
+let modelRoot;
+let currentModel = null;
+let currentAnimations = [];
+let mixer = null;
 
-let traffic = [];
+let currentBox = null;
+let currentCenter = new THREE.Vector3();
+let currentSize = new THREE.Vector3();
 
-let gameStarted = false;
-let crashed = false;
+let wireframeEnabled = false;
+let gridEnabled = true;
+let shadowsEnabled = false;
 
-let speed = 0;
-let score = 0;
+let currentScale = 1;
+let currentRotation = 0;
 
-let lastTime = performance.now();
+let clock = new THREE.Clock();
 
-const keys = {};
+let loadingToken = 0;
 
-
-/* =========================================================
-   CONSTANTS
-========================================================= */
-
-const ROAD_WIDTH = 24;
-
-const ROAD_LENGTH = 4000;
-
-const PLAYER_Z = 20;
-
-const MAX_SPEED = 1.15;
-
-const ACCELERATION = 0.018;
-
-const BRAKE_POWER = 0.035;
-
-const FRICTION = 0.008;
-
-const STEERING = 0.28;
+let fpsFrames = 0;
+let fpsLastTime = performance.now();
 
 
-/* =========================================================
-   INITIALIZE THREE.JS
-========================================================= */
+/* ============================================================
+   3. INITIALIZE
+============================================================ */
 
-function initThree() {
+function init() {
 
-    scene =
-        new THREE.Scene();
+    loader = new THREE.GLTFLoader();
 
+    scene = new THREE.Scene();
 
-    scene.background =
-        new THREE.Color(
-            0x91c4e8
-        );
+    scene.background = new THREE.Color(0x0d1218);
 
 
-    scene.fog =
-        new THREE.Fog(
-            0x91c4e8,
-            150,
-            900
-        );
+    /* ---------------- CAMERA ---------------- */
 
-
-    /* CAMERA */
-
-    camera =
-        new THREE.PerspectiveCamera(
-            60,
-            window.innerWidth /
-            window.innerHeight,
-            0.1,
-            2000
-        );
-
+    camera = new THREE.PerspectiveCamera(
+        45,
+        1,
+        0.01,
+        100000
+    );
 
     camera.position.set(
-        0,
         5,
-        PLAYER_Z + 12
+        3,
+        7
     );
 
 
-    /* RENDERER */
+    /* ---------------- RENDERER ---------------- */
 
-    renderer =
-        new THREE.WebGLRenderer({
-            antialias: true
-        });
-
-
-    renderer.setSize(
-        window.innerWidth,
-        window.innerHeight
-    );
-
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: false,
+        powerPreference: "high-performance"
+    });
 
     renderer.setPixelRatio(
-        Math.min(
-            window.devicePixelRatio,
-            2
-        )
+        Math.min(window.devicePixelRatio || 1, 1.5)
     );
 
+    renderer.outputEncoding = THREE.sRGBEncoding;
 
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = false;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    renderer.setSize(
+        document.getElementById("canvas-container").clientWidth,
+        document.getElementById("canvas-container").clientHeight
+    );
+
+    document
+        .getElementById("canvas-container")
+        .appendChild(renderer.domElement);
 
 
-    renderer.shadowMap.type =
-        THREE.PCFSoftShadowMap;
+    /* ---------------- CONTROLS ---------------- */
 
-
-    renderer.outputEncoding =
-        THREE.sRGBEncoding;
-
-
-    document.body.appendChild(
+    controls = new THREE.OrbitControls(
+        camera,
         renderer.domElement
     );
 
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
 
-    /* LOADER */
+    controls.enablePan = true;
 
-    loader =
-        new THREE.GLTFLoader();
+    controls.minDistance = 0.01;
+    controls.maxDistance = 100000;
+
+    controls.target.set(0, 1, 0);
 
 
-    /* LIGHTING */
+    /* ---------------- LIGHTING ---------------- */
 
-    const skyLight =
-        new THREE.HemisphereLight(
-            0xd8edff,
-            0x35502f,
-            1.8
-        );
+    const hemi = new THREE.HemisphereLight(
+        0xffffff,
+        0x27303a,
+        2.0
+    );
 
-    scene.add(
-        skyLight
+    scene.add(hemi);
+
+
+    const keyLight = new THREE.DirectionalLight(
+        0xffffff,
+        3.0
+    );
+
+    keyLight.position.set(
+        6,
+        10,
+        6
+    );
+
+    keyLight.castShadow = true;
+
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+
+    keyLight.shadow.camera.near = 0.1;
+    keyLight.shadow.camera.far = 100;
+
+    scene.add(keyLight);
+
+
+    const fillLight = new THREE.DirectionalLight(
+        0xb9d9ff,
+        1.3
+    );
+
+    fillLight.position.set(
+        -7,
+        5,
+        -5
+    );
+
+    scene.add(fillLight);
+
+
+    /* ---------------- GROUND ---------------- */
+
+    createGround();
+
+
+    /* ---------------- MODEL ROOT ---------------- */
+
+    modelRoot = new THREE.Group();
+
+    scene.add(modelRoot);
+
+
+    /* ---------------- EVENTS ---------------- */
+
+    window.addEventListener(
+        "resize",
+        onResize
+    );
+
+    window.addEventListener(
+        "keydown",
+        onKeyDown
     );
 
 
-    const sun =
-        new THREE.DirectionalLight(
-            0xffffff,
-            2
-        );
+    buildAssetMenu();
+
+    animate();
 
 
-    sun.position.set(
-        -100,
-        150,
-        100
+    /* Load first confirmed asset. */
+
+    const firstAsset = ASSETS["Cars"][0];
+
+    loadAsset(
+        firstAsset,
+        "Cars"
     );
-
-
-    sun.castShadow = true;
-
-
-    sun.shadow.mapSize.width =
-        2048;
-
-    sun.shadow.mapSize.height =
-        2048;
-
-
-    scene.add(
-        sun
-    );
-
-
-    createWorld();
-
 }
 
 
-/* =========================================================
-   WORLD
-========================================================= */
+/* ============================================================
+   4. GROUND
+============================================================ */
 
-function createWorld() {
+function createGround() {
 
-    /* GRASS */
+    const size = 2000;
 
-    const grassGeometry =
+    const groundGeometry =
         new THREE.PlaneGeometry(
-            500,
-            ROAD_LENGTH
+            size,
+            size
         );
 
-
-    const grassMaterial =
+    const groundMaterial =
         new THREE.MeshStandardMaterial({
-            color: 0x4f8044,
-            roughness: 1
+            color: 0x151b21,
+            roughness: 0.92,
+            metalness: 0.02
         });
 
-
-    const grass =
+    const ground =
         new THREE.Mesh(
-            grassGeometry,
-            grassMaterial
+            groundGeometry,
+            groundMaterial
         );
 
+    ground.rotation.x = -Math.PI / 2;
 
-    grass.rotation.x =
-        -Math.PI / 2;
+    ground.position.y = -0.002;
 
+    ground.receiveShadow = true;
 
-    grass.position.set(
-        0,
-        -0.15,
-        -ROAD_LENGTH / 2
-    );
+    ground.name = "AssetLabGround";
 
-
-    grass.receiveShadow = true;
+    scene.add(ground);
 
 
-    scene.add(
-        grass
-    );
+    /* ---------------- GRID ---------------- */
 
-
-    /* ROAD */
-
-    const roadGeometry =
-        new THREE.PlaneGeometry(
-            ROAD_WIDTH,
-            ROAD_LENGTH
+    const grid =
+        new THREE.GridHelper(
+            200,
+            100,
+            0x46515d,
+            0x252e37
         );
 
+    grid.name = "AssetLabGrid";
 
-    const roadMaterial =
-        new THREE.MeshStandardMaterial({
-            color: 0x303337,
-            roughness: 0.9
-        });
-
-
-    const road =
-        new THREE.Mesh(
-            roadGeometry,
-            roadMaterial
-        );
-
-
-    road.rotation.x =
-        -Math.PI / 2;
-
-
-    road.position.set(
-        0,
-        0,
-        -ROAD_LENGTH / 2
-    );
-
-
-    road.receiveShadow = true;
-
-
-    scene.add(
-        road
-    );
-
-
-    /* ROAD EDGES */
-
-    createRoadLine(
-        -ROAD_WIDTH / 2 + 1,
-        0xffffff
-    );
-
-    createRoadLine(
-        ROAD_WIDTH / 2 - 1,
-        0xffffff
-    );
-
-
-    /* CENTER LANE MARKINGS */
-
-    for (
-        let z = 0;
-        z > -ROAD_LENGTH;
-        z -= 20
-    ) {
-
-        const geometry =
-            new THREE.BoxGeometry(
-                0.25,
-                0.03,
-                8
-            );
-
-
-        const material =
-            new THREE.MeshBasicMaterial({
-                color: 0xffffff
-            });
-
-
-        const line =
-            new THREE.Mesh(
-                geometry,
-                material
-            );
-
-
-        line.position.set(
-            0,
-            0.025,
-            z
-        );
-
-
-        scene.add(
-            line
-        );
-
-    }
-
-
-    /* SIMPLE ROAD SIDE OBJECTS */
-
-    createRoadside();
-
+    scene.add(grid);
 }
 
 
-/* =========================================================
-   ROAD EDGE
-========================================================= */
+/* ============================================================
+   5. BUILD ASSET MENU
+============================================================ */
 
-function createRoadLine(
-    x,
-    color
-) {
+function buildAssetMenu() {
 
-    const geometry =
-        new THREE.BoxGeometry(
-            0.25,
-            0.04,
-            ROAD_LENGTH
-        );
+    const container =
+        document.getElementById("categories");
 
+    container.innerHTML = "";
 
-    const material =
-        new THREE.MeshBasicMaterial({
-            color: color
-        });
 
+    Object.keys(ASSETS).forEach(
+        category => {
 
-    const line =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
+            const categoryElement =
+                document.createElement("div");
 
+            categoryElement.className =
+                "category";
 
-    line.position.set(
-        x,
-        0.03,
-        -ROAD_LENGTH / 2
-    );
 
+            const title =
+                document.createElement("div");
 
-    scene.add(
-        line
-    );
+            title.className =
+                "category-title";
 
-}
+            title.textContent =
+                category;
 
 
-/* =========================================================
-   ROADSIDE
-========================================================= */
+            categoryElement.appendChild(title);
 
-function createRoadside() {
 
-    const poleMaterial =
-        new THREE.MeshStandardMaterial({
-            color: 0x555555
-        });
+            ASSETS[category].forEach(
+                asset => {
 
+                    const button =
+                        document.createElement("button");
 
-    for (
-        let z = -40;
-        z > -ROAD_LENGTH;
-        z -= 60
-    ) {
+                    button.className =
+                        "asset-button";
 
-        for (
-            const side of [-1, 1]
-        ) {
+                    button.textContent =
+                        asset.name;
 
-            const pole =
-                new THREE.Mesh(
-                    new THREE.BoxGeometry(
-                        0.2,
-                        4,
-                        0.2
-                    ),
-                    poleMaterial
-                );
+                    button.dataset.file =
+                        asset.file;
 
 
-            pole.position.set(
-                side * 18,
-                2,
-                z
-            );
+                    button.addEventListener(
+                        "click",
+                        () => {
 
+                            loadAsset(
+                                asset,
+                                category
+                            );
 
-            pole.castShadow = true;
-
-
-            scene.add(
-                pole
-            );
-
-        }
-
-    }
-
-}
-
-
-/* =========================================================
-   MODEL GROUNDING
-========================================================= */
-
-function prepareVehicle(
-    model,
-    targetLength
-) {
-
-    model.updateMatrixWorld(
-        true
-    );
-
-
-    /*
-       FIRST:
-       find actual model dimensions
-    */
-
-    let box =
-        new THREE.Box3()
-            .setFromObject(
-                model
-            );
-
-
-    let size =
-        new THREE.Vector3();
-
-
-    box.getSize(
-        size
-    );
-
-
-    /*
-       SCALE BASED ON LENGTH
-
-       This is much safer for cars than
-       scaling by the largest dimension.
-    */
-
-    if (
-        size.z > 0
-    ) {
-
-        const scale =
-            targetLength /
-            size.z;
-
-
-        model.scale.setScalar(
-            scale
-        );
-
-    }
-
-
-    model.updateMatrixWorld(
-        true
-    );
-
-
-    /*
-       RE-CALCULATE BOUNDS
-    */
-
-    box =
-        new THREE.Box3()
-            .setFromObject(
-                model
-            );
-
-
-    const center =
-        new THREE.Vector3();
-
-
-    box.getCenter(
-        center
-    );
-
-
-    /*
-       CENTER X/Z
-    */
-
-    model.position.x -=
-        center.x;
-
-
-    model.position.z -=
-        center.z;
-
-
-    model.updateMatrixWorld(
-        true
-    );
-
-
-    /*
-       NOW GROUND IT.
-    */
-
-    box =
-        new THREE.Box3()
-            .setFromObject(
-                model
-            );
-
-
-    model.position.y -=
-        box.min.y;
-
-
-    model.updateMatrixWorld(
-        true
-    );
-
-
-    /*
-       SHADOWS
-    */
-
-    model.traverse(
-        object => {
-
-            if (
-                object.isMesh
-            ) {
-
-                object.castShadow =
-                    true;
-
-                object.receiveShadow =
-                    true;
-
-            }
-
-        }
-    );
-
-
-    return model;
-
-}
-
-
-/* =========================================================
-   LOAD PLAYER
-========================================================= */
-
-function loadPlayer() {
-
-    return new Promise(
-        (resolve, reject) => {
-
-            document.getElementById(
-                "loading-text"
-            ).textContent =
-                "Loading player vehicle...";
-
-
-            loader.load(
-
-                "./car.glb",
-
-                gltf => {
-
-                    player =
-                        new THREE.Group();
-
-
-                    player.position.set(
-                        0,
-                        0,
-                        PLAYER_Z
+                            document
+                                .getElementById("sidebar")
+                                .classList
+                                .remove("open");
+                        }
                     );
 
 
-                    playerModel =
-                        gltf.scene;
-
-
-                    /*
-                       IMPORTANT:
-                       This is the only vehicle
-                       we are loading right now.
-                    */
-
-                    prepareVehicle(
-                        playerModel,
-                        5
+                    categoryElement.appendChild(
+                        button
                     );
-
-
-                    player.add(
-                        playerModel
-                    );
-
-
-                    scene.add(
-                        player
-                    );
-
-
-                    /*
-                       Make sure vehicle is
-                       sitting exactly on road.
-                    */
-
-                    player.position.y =
-                        0;
-
-
-                    resolve();
-
-                },
-
-
-                xhr => {
-
-                    if (
-                        xhr.total
-                    ) {
-
-                        const percent =
-                            (
-                                xhr.loaded /
-                                xhr.total
-                            ) * 100;
-
-
-                        document.getElementById(
-                            "loading-progress"
-                        ).style.width =
-                            percent + "%";
-
-                    }
-
-                },
-
-
-                error => {
-
-                    console.error(
-                        "PLAYER GLB ERROR:",
-                        error
-                    );
-
-
-                    reject(
-                        error
-                    );
-
                 }
-
             );
 
+
+            container.appendChild(
+                categoryElement
+            );
         }
     );
-
 }
 
 
-/* =========================================================
-   TRAFFIC VEHICLE
-========================================================= */
+/* ============================================================
+   6. LOAD ASSET
+============================================================ */
 
-function loadTrafficVehicle(
-    file,
-    x,
-    z
-) {
+function loadAsset(asset, category) {
+
+    const token =
+        ++loadingToken;
+
+
+    showLoading(
+        "Loading " + asset.name + "..."
+    );
+
+    hideError();
+
+
+    setStatus(
+        "Loading model...",
+        "loading"
+    );
+
+
+    updateCurrentAssetUI(
+        asset,
+        category
+    );
+
+
+    /* ---------------- CLEAN OLD MODEL ---------------- */
+
+    stopAnimations();
+
+    disposeCurrentModel();
+
+    currentModel = null;
+
+    currentAnimations = [];
+
+    mixer = null;
+
+
+    resetInspector();
+
+
+    const started =
+        performance.now();
+
+
+    /*
+        encodeURI is important because several filenames
+        contain spaces and parentheses.
+    */
+
+    const url =
+        encodeURI("./" + asset.file);
+
 
     loader.load(
 
-        file,
+        url,
 
-        gltf => {
+        function(gltf) {
 
-            const vehicle =
-                new THREE.Group();
+            /*
+                Ignore a late result if the user clicked another
+                asset while this one was loading.
+            */
+
+            if (token !== loadingToken) {
+
+                disposeObject(
+                    gltf.scene
+                );
+
+                return;
+            }
 
 
-            const model =
+            const elapsed =
+                performance.now() - started;
+
+
+            currentModel =
                 gltf.scene;
 
 
-            prepareVehicle(
-                model,
-                4.5
+            currentAnimations =
+                gltf.animations || [];
+
+
+            modelRoot.add(
+                currentModel
             );
 
 
-            vehicle.add(
-                model
+            prepareModel(
+                currentModel
             );
 
 
-            vehicle.position.set(
-                x,
-                0,
-                z
+            analyzeModel(
+                currentModel,
+                currentAnimations,
+                elapsed
             );
 
 
-            vehicle.userData.speed =
-                0.35 +
-                Math.random() *
-                0.2;
+            if (currentAnimations.length > 0) {
+
+                mixer =
+                    new THREE.AnimationMixer(
+                        currentModel
+                    );
+            }
 
 
-            scene.add(
-                vehicle
+            resetTransform();
+
+            groundModel();
+
+            frameModel();
+
+
+            buildAnimationUI(
+                currentAnimations
             );
 
 
-            traffic.push(
-                vehicle
+            hideLoading();
+
+
+            setStatus(
+                "Loaded successfully",
+                "success"
             );
 
         },
 
-        undefined,
+        function(progress) {
 
-        error => {
+            if (
+                progress &&
+                progress.total > 0
+            ) {
 
-            console.warn(
-                "Traffic model failed:",
-                file,
+                const percent =
+                    (
+                        progress.loaded /
+                        progress.total
+                    ) * 100;
+
+
+                showLoading(
+                    "Loading " +
+                    Math.round(percent) +
+                    "%..."
+                );
+            }
+
+        },
+
+        function(error) {
+
+            if (token !== loadingToken) {
+                return;
+            }
+
+
+            console.error(
+                "GLB load error:",
+                error
+            );
+
+
+            hideLoading();
+
+
+            setStatus(
+                "Failed to load",
+                "error"
+            );
+
+
+            showError(
+                asset.file,
                 error
             );
 
         }
 
     );
-
 }
 
 
-/* =========================================================
-   LOAD TRAFFIC
-========================================================= */
+/* ============================================================
+   7. PREPARE MODEL
+============================================================ */
 
-function loadTraffic() {
+function prepareModel(model) {
 
-    const vehicles = [
+    model.traverse(
+        object => {
 
-        {
-            file: "./T-vehicle (1).glb",
-            x: -6,
-            z: -80
-        },
+            if (!object.isMesh) {
+                return;
+            }
 
-        {
-            file: "./T-vehicle (2).glb",
-            x: 2,
-            z: -160
-        },
 
-        {
-            file: "./T-vehicle (3).glb",
-            x: 7,
-            z: -250
+            object.castShadow =
+                shadowsEnabled;
+
+            object.receiveShadow =
+                shadowsEnabled;
+
+
+            /*
+                Make sure material rendering remains stable.
+            */
+
+            if (object.material) {
+
+                const materials =
+                    Array.isArray(
+                        object.material
+                    )
+                        ? object.material
+                        : [object.material];
+
+
+                materials.forEach(
+                    material => {
+
+                        if (
+                            material &&
+                            "color" in material &&
+                            material.color
+                        ) {
+                            material.needsUpdate =
+                                true;
+                        }
+
+                    }
+                );
+            }
+
         }
+    );
+}
 
+
+/* ============================================================
+   8. ANALYZE MODEL
+============================================================ */
+
+function analyzeModel(
+    model,
+    animations,
+    elapsed
+) {
+
+    const box =
+        new THREE.Box3()
+            .setFromObject(model);
+
+
+    currentBox =
+        box.clone();
+
+
+    const size =
+        box.getSize(
+            new THREE.Vector3()
+        );
+
+
+    const center =
+        box.getCenter(
+            new THREE.Vector3()
+        );
+
+
+    currentCenter.copy(
+        center
+    );
+
+    currentSize.copy(
+        size
+    );
+
+
+    let meshCount = 0;
+    let triangleCount = 0;
+
+    const materials =
+        new Set();
+
+    const textures =
+        new Set();
+
+
+    model.traverse(
+        object => {
+
+            if (!object.isMesh) {
+                return;
+            }
+
+
+            meshCount++;
+
+
+            const geometry =
+                object.geometry;
+
+
+            if (geometry) {
+
+                if (
+                    geometry.index
+                ) {
+
+                    triangleCount +=
+                        geometry.index.count / 3;
+
+                } else if (
+                    geometry.attributes.position
+                ) {
+
+                    triangleCount +=
+                        geometry.attributes.position.count / 3;
+                }
+            }
+
+
+            const material =
+                object.material;
+
+
+            if (Array.isArray(material)) {
+
+                material.forEach(
+                    m => registerMaterial(
+                        m,
+                        materials,
+                        textures
+                    )
+                );
+
+            } else {
+
+                registerMaterial(
+                    material,
+                    materials,
+                    textures
+                );
+            }
+
+        }
+    );
+
+
+    document.getElementById(
+        "mesh-count"
+    ).textContent =
+        meshCount.toLocaleString();
+
+
+    document.getElementById(
+        "triangle-count"
+    ).textContent =
+        Math.round(
+            triangleCount
+        ).toLocaleString();
+
+
+    document.getElementById(
+        "material-count"
+    ).textContent =
+        materials.size.toLocaleString();
+
+
+    document.getElementById(
+        "texture-count"
+    ).textContent =
+        textures.size.toLocaleString();
+
+
+    document.getElementById(
+        "animation-count"
+    ).textContent =
+        animations.length.toLocaleString();
+
+
+    document.getElementById(
+        "load-time"
+    ).textContent =
+        Math.round(elapsed) + " ms";
+
+
+    document.getElementById(
+        "dim-x"
+    ).textContent =
+        formatDimension(size.x);
+
+
+    document.getElementById(
+        "dim-y"
+    ).textContent =
+        formatDimension(size.y);
+
+
+    document.getElementById(
+        "dim-z"
+    ).textContent =
+        formatDimension(size.z);
+}
+
+
+/* ============================================================
+   9. MATERIAL / TEXTURE ANALYSIS
+============================================================ */
+
+function registerMaterial(
+    material,
+    materials,
+    textures
+) {
+
+    if (!material) {
+        return;
+    }
+
+
+    materials.add(
+        material
+    );
+
+
+    const textureProperties = [
+        "map",
+        "normalMap",
+        "roughnessMap",
+        "metalnessMap",
+        "aoMap",
+        "emissiveMap",
+        "alphaMap"
     ];
 
 
-    vehicles.forEach(
-        vehicle => {
+    textureProperties.forEach(
+        property => {
 
-            loadTrafficVehicle(
-                vehicle.file,
-                vehicle.x,
-                vehicle.z
-            );
+            if (
+                material[property]
+            ) {
 
+                textures.add(
+                    material[property]
+                );
+            }
         }
     );
-
 }
 
 
-/* =========================================================
-   INPUT
-========================================================= */
+/* ============================================================
+   10. FORMAT DIMENSIONS
+============================================================ */
 
-window.addEventListener(
-    "keydown",
-    event => {
+function formatDimension(value) {
 
-        keys[
-            event.key.toLowerCase()
-        ] = true;
-
-
-        if (
-            [
-                "arrowup",
-                "arrowdown",
-                "arrowleft",
-                "arrowright",
-                " "
-            ].includes(
-                event.key.toLowerCase()
-            )
-        ) {
-
-            event.preventDefault();
-
-        }
-
+    if (!Number.isFinite(value)) {
+        return "—";
     }
-);
 
 
-window.addEventListener(
-    "keyup",
-    event => {
-
-        keys[
-            event.key.toLowerCase()
-        ] = false;
-
+    if (Math.abs(value) >= 1000) {
+        return value.toFixed(1) + "m";
     }
-);
 
 
-/* =========================================================
-   PLAYER MOVEMENT
-========================================================= */
+    if (Math.abs(value) >= 100) {
+        return value.toFixed(2) + "m";
+    }
 
-function updatePlayer(
-    delta
-) {
 
-    if (
-        !player ||
-        crashed
-    ) {
+    if (Math.abs(value) >= 10) {
+        return value.toFixed(3) + "m";
+    }
 
+
+    return value.toFixed(4) + "m";
+}
+
+
+/* ============================================================
+   11. GROUND MODEL
+============================================================ */
+
+function groundModel() {
+
+    if (!currentModel) {
         return;
-
     }
-
-
-    /* ACCELERATION */
-
-    if (
-        keys["w"] ||
-        keys["arrowup"]
-    ) {
-
-        speed +=
-            ACCELERATION;
-
-    }
-    else {
-
-        speed -=
-            FRICTION;
-
-    }
-
-
-    /* BRAKE */
-
-    if (
-        keys["s"] ||
-        keys["arrowdown"]
-    ) {
-
-        speed -=
-            BRAKE_POWER;
-
-    }
-
-
-    speed =
-        THREE.MathUtils.clamp(
-            speed,
-            0,
-            MAX_SPEED
-        );
-
-
-    /* STEERING */
-
-    let steering = 0;
-
-
-    if (
-        keys["a"] ||
-        keys["arrowleft"]
-    ) {
-
-        steering -= 1;
-
-    }
-
-
-    if (
-        keys["d"] ||
-        keys["arrowright"]
-    ) {
-
-        steering += 1;
-
-    }
-
-
-    player.position.x +=
-        steering *
-        STEERING *
-        (0.4 + speed);
 
 
     /*
-       Keep player on road.
+        Calculate the model's current lowest Y point.
     */
 
-    player.position.x =
-        THREE.MathUtils.clamp(
-            player.position.x,
-            -9,
-            9
-        );
-
-
-    /*
-       Move forward.
-
-       Negative Z = forward.
-    */
-
-    player.position.z -=
-        speed;
-
-
-    /*
-       Slight body lean.
-    */
-
-    player.rotation.z =
-        -steering * 0.04;
-
-
-    /*
-       Camera.
-    */
-
-    updateCamera();
-
-
-    /*
-       Score.
-    */
-
-    score +=
-        speed * delta * 60;
-
-
-    updateHUD();
-
-}
-
-
-/* =========================================================
-   TRAFFIC MOVEMENT
-========================================================= */
-
-function updateTraffic() {
-
-    for (
-        const vehicle of traffic
-    ) {
-
-        vehicle.position.z +=
-            vehicle.userData.speed -
-            speed;
-
-
-        /*
-           Recycle traffic once
-           it passes the player.
-        */
-
-        if (
-            vehicle.position.z >
-            player.position.z + 40
-        ) {
-
-            vehicle.position.z =
-                player.position.z -
-                250 -
-                Math.random() *
-                250;
-
-
-            const lanes = [
-                -7,
-                -2.5,
-                2.5,
-                7
-            ];
-
-
-            vehicle.position.x =
-                lanes[
-                    Math.floor(
-                        Math.random() *
-                        lanes.length
-                    )
-                ];
-
-        }
-
-    }
-
-}
-
-
-/* =========================================================
-   COLLISION
-========================================================= */
-
-function checkCollisions() {
-
-    if (
-        !player ||
-        crashed
-    ) {
-
-        return;
-
-    }
-
-
-    const playerBox =
+    const box =
         new THREE.Box3()
             .setFromObject(
-                player
+                currentModel
             );
 
 
     /*
-       Make collision box
-       slightly smaller than model.
+        Move only vertically.
+
+        We do NOT rotate the model automatically.
+        We do NOT guess which direction is "forward".
     */
 
-    playerBox.expandByScalar(
-        -0.4
-    );
-
-
-    for (
-        const vehicle of traffic
-    ) {
-
-        const trafficBox =
-            new THREE.Box3()
-                .setFromObject(
-                    vehicle
-                );
-
-
-        trafficBox.expandByScalar(
-            -0.3
-        );
-
-
-        if (
-            playerBox.intersectsBox(
-                trafficBox
-            )
-        ) {
-
-            crash();
-
-            return;
-
-        }
-
-    }
-
+    currentModel.position.y -=
+        box.min.y;
 }
 
 
-/* =========================================================
-   CAMERA
-========================================================= */
+/* ============================================================
+   12. FRAME MODEL
+============================================================ */
 
-function updateCamera() {
+function frameModel() {
+
+    if (!currentModel) {
+        return;
+    }
+
+
+    const box =
+        new THREE.Box3()
+            .setFromObject(
+                currentModel
+            );
+
+
+    const size =
+        box.getSize(
+            new THREE.Vector3()
+        );
+
+
+    const center =
+        box.getCenter(
+            new THREE.Vector3()
+        );
+
+
+    const maxDimension =
+        Math.max(
+            size.x,
+            size.y,
+            size.z
+        );
+
 
     if (
-        !player
+        !Number.isFinite(maxDimension) ||
+        maxDimension <= 0
     ) {
-
         return;
-
     }
 
 
-    const desiredPosition =
+    /*
+        Camera distance is derived from the actual model size.
+        This prevents tiny models being lost and huge models
+        disappearing inside the camera.
+    */
+
+    const distance =
+        maxDimension * 2.4;
+
+
+    const direction =
         new THREE.Vector3(
-            player.position.x * 0.45,
-            5.2,
-            player.position.z + 11
-        );
+            1,
+            0.65,
+            1
+        ).normalize();
 
 
-    camera.position.lerp(
-        desiredPosition,
-        0.08
+    camera.position.copy(
+        center.clone()
+            .add(
+                direction.multiplyScalar(
+                    distance
+                )
+            )
     );
 
 
-    const lookTarget =
-        new THREE.Vector3(
-            player.position.x,
-            1.2,
-            player.position.z - 25
+    controls.target.copy(
+        center
+    );
+
+
+    camera.near =
+        Math.max(
+            0.001,
+            maxDimension / 10000
         );
 
 
-    camera.lookAt(
-        lookTarget
-    );
+    camera.far =
+        Math.max(
+            1000,
+            maxDimension * 100
+        );
 
+
+    camera.updateProjectionMatrix();
+
+    controls.update();
 }
 
 
-/* =========================================================
-   HUD
-========================================================= */
+/* ============================================================
+   13. RESET CAMERA
+============================================================ */
 
-function updateHUD() {
+function resetCamera() {
+
+    if (!currentModel) {
+        return;
+    }
+
+
+    frameModel();
+}
+
+
+/* ============================================================
+   14. SCALE
+============================================================ */
+
+function changeScale(value) {
+
+    currentScale =
+        parseFloat(value);
+
+
+    if (!currentModel) {
+        return;
+    }
+
+
+    currentModel.scale.setScalar(
+        currentScale
+    );
+
 
     document.getElementById(
-        "speed"
+        "scale-value"
+    ).textContent =
+        currentScale.toFixed(2) + "×";
+}
+
+
+/* ============================================================
+   15. ROTATION
+============================================================ */
+
+function changeRotation(value) {
+
+    currentRotation =
+        parseFloat(value);
+
+
+    if (!currentModel) {
+        return;
+    }
+
+
+    currentModel.rotation.y =
+        THREE.MathUtils.degToRad(
+            currentRotation
+        );
+
+
+    document.getElementById(
+        "rotation-value"
     ).textContent =
         Math.round(
-            speed * 160
-        );
-
-
-    document.getElementById(
-        "score"
-    ).textContent =
-        Math.floor(
-            score
-        );
-
+            currentRotation
+        ) + "°";
 }
 
 
-/* =========================================================
-   START GAME
-========================================================= */
+/* ============================================================
+   16. RESET TRANSFORM
+============================================================ */
 
-function startGame() {
+function resetTransform() {
 
-    gameStarted =
-        true;
-
-    crashed =
-        false;
-
-    speed =
-        0;
-
-    score =
-        0;
+    if (!currentModel) {
+        return;
+    }
 
 
-    document.getElementById(
-        "menu"
-    ).style.display =
-        "none";
+    currentScale = 1;
+    currentRotation = 0;
 
 
-    document.getElementById(
-        "hud"
-    ).style.display =
-        "block";
-
-}
-
-
-/* =========================================================
-   CRASH
-========================================================= */
-
-function crash() {
-
-    crashed =
-        true;
-
-    speed =
-        0;
-
-
-    document.getElementById(
-        "final-score"
-    ).textContent =
-        Math.floor(
-            score
-        );
-
-
-    document.getElementById(
-        "game-over"
-    ).style.display =
-        "flex";
-
-}
-
-
-/* =========================================================
-   RESTART
-========================================================= */
-
-function restartGame() {
-
-    crashed =
-        false;
-
-    speed =
-        0;
-
-    score =
-        0;
-
-
-    player.position.set(
-        0,
-        0,
-        PLAYER_Z
+    currentModel.scale.set(
+        1,
+        1,
+        1
     );
 
 
-    traffic.forEach(
-        (vehicle, index) => {
+    currentModel.rotation.set(
+        0,
+        0,
+        0
+    );
 
-            vehicle.position.z =
-                -100 -
-                index * 100;
 
+    document.getElementById(
+        "scale-slider"
+    ).value = 1;
+
+
+    document.getElementById(
+        "rotation-slider"
+    ).value = 0;
+
+
+    document.getElementById(
+        "scale-value"
+    ).textContent =
+        "1.00×";
+
+
+    document.getElementById(
+        "rotation-value"
+    ).textContent =
+        "0°";
+
+
+    groundModel();
+}
+
+
+/* ============================================================
+   17. WIREFRAME
+============================================================ */
+
+function toggleWireframe() {
+
+    wireframeEnabled =
+        !wireframeEnabled;
+
+
+    document
+        .getElementById("wire-btn")
+        .classList.toggle(
+            "active",
+            wireframeEnabled
+        );
+
+
+    if (!currentModel) {
+        return;
+    }
+
+
+    currentModel.traverse(
+        object => {
+
+            if (!object.isMesh) {
+                return;
+            }
+
+
+            const material =
+                object.material;
+
+
+            if (Array.isArray(material)) {
+
+                material.forEach(
+                    m => {
+
+                        if (m) {
+                            m.wireframe =
+                                wireframeEnabled;
+                        }
+
+                    }
+                );
+
+            } else if (material) {
+
+                material.wireframe =
+                    wireframeEnabled;
+            }
+
+        }
+    );
+}
+
+
+/* ============================================================
+   18. GRID
+============================================================ */
+
+function toggleGrid() {
+
+    gridEnabled =
+        !gridEnabled;
+
+
+    document
+        .getElementById("grid-btn")
+        .classList.toggle(
+            "active",
+            gridEnabled
+        );
+
+
+    const grid =
+        scene.getObjectByName(
+            "AssetLabGrid"
+        );
+
+
+    if (grid) {
+        grid.visible =
+            gridEnabled;
+    }
+}
+
+
+/* ============================================================
+   19. SHADOWS
+============================================================ */
+
+function toggleShadows() {
+
+    shadowsEnabled =
+        !shadowsEnabled;
+
+
+    document
+        .getElementById("shadow-btn")
+        .classList.toggle(
+            "active",
+            shadowsEnabled
+        );
+
+
+    renderer.shadowMap.enabled =
+        shadowsEnabled;
+
+
+    scene.traverse(
+        object => {
+
+            if (!object.isMesh) {
+                return;
+            }
+
+
+            object.castShadow =
+                shadowsEnabled;
+
+            object.receiveShadow =
+                shadowsEnabled;
+        }
+    );
+
+
+    renderer.shadowMap.needsUpdate =
+        true;
+}
+
+
+/* ============================================================
+   20. ANIMATION UI
+============================================================ */
+
+function buildAnimationUI(
+    animations
+) {
+
+    const container =
+        document.getElementById(
+            "animations"
+        );
+
+
+    container.innerHTML = "";
+
+
+    if (
+        !animations ||
+        animations.length === 0
+    ) {
+
+        container.innerHTML =
+            '<div class="empty">No animations detected in this GLB.</div>';
+
+        return;
+    }
+
+
+    animations.forEach(
+        (clip, index) => {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "animation-item";
+
+
+            const name =
+                document.createElement(
+                    "div"
+                );
+
+            name.className =
+                "animation-name";
+
+            name.textContent =
+                clip.name ||
+                "Animation " +
+                (index + 1);
+
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+            button.className =
+                "animation-play";
+
+            button.textContent =
+                "PLAY";
+
+
+            button.onclick =
+                function() {
+
+                    playAnimation(
+                        clip
+                    );
+                };
+
+
+            row.appendChild(
+                name
+            );
+
+            row.appendChild(
+                button
+            );
+
+
+            container.appendChild(
+                row
+            );
+        }
+    );
+}
+
+
+/* ============================================================
+   21. PLAY ANIMATION
+============================================================ */
+
+function playAnimation(
+    clip
+) {
+
+    if (
+        !mixer ||
+        !clip
+    ) {
+        return;
+    }
+
+
+    mixer.stopAllAction();
+
+
+    const action =
+        mixer.clipAction(
+            clip
+        );
+
+
+    action.reset();
+
+    action.play();
+}
+
+
+/* ============================================================
+   22. PLAY FIRST ANIMATION
+============================================================ */
+
+function playFirstAnimation() {
+
+    if (
+        currentAnimations.length === 0
+    ) {
+        return;
+    }
+
+
+    playAnimation(
+        currentAnimations[0]
+    );
+}
+
+
+/* ============================================================
+   23. STOP ANIMATIONS
+============================================================ */
+
+function stopAnimations() {
+
+    if (mixer) {
+
+        mixer.stopAllAction();
+    }
+}
+
+
+/* ============================================================
+   24. DISPOSE CURRENT MODEL
+============================================================ */
+
+function disposeCurrentModel() {
+
+    if (!currentModel) {
+        return;
+    }
+
+
+    stopAnimations();
+
+
+    modelRoot.remove(
+        currentModel
+    );
+
+
+    disposeObject(
+        currentModel
+    );
+
+
+    currentModel = null;
+}
+
+
+/* ============================================================
+   25. DISPOSE THREE OBJECT
+============================================================ */
+
+function disposeObject(
+    object
+) {
+
+    if (!object) {
+        return;
+    }
+
+
+    const disposedTextures =
+        new Set();
+
+
+    object.traverse(
+        child => {
+
+            if (child.geometry) {
+
+                child.geometry.dispose();
+            }
+
+
+            if (!child.material) {
+                return;
+            }
+
+
+            const materials =
+                Array.isArray(
+                    child.material
+                )
+                    ? child.material
+                    : [child.material];
+
+
+            materials.forEach(
+                material => {
+
+                    if (!material) {
+                        return;
+                    }
+
+
+                    const textureProperties = [
+                        "map",
+                        "normalMap",
+                        "roughnessMap",
+                        "metalnessMap",
+                        "aoMap",
+                        "emissiveMap",
+                        "alphaMap",
+                        "bumpMap",
+                        "displacementMap",
+                        "lightMap",
+                        "specularMap"
+                    ];
+
+
+                    textureProperties.forEach(
+                        property => {
+
+                            const texture =
+                                material[property];
+
+
+                            if (
+                                texture &&
+                                !disposedTextures.has(
+                                    texture
+                                )
+                            ) {
+
+                                texture.dispose();
+
+                                disposedTextures.add(
+                                    texture
+                                );
+                            }
+                        }
+                    );
+
+
+                    material.dispose();
+                }
+            }
+        }
+    );
+}
+
+
+/* ============================================================
+   26. UPDATE CURRENT UI
+============================================================ */
+
+function updateCurrentAssetUI(
+    asset,
+    category
+) {
+
+    document.getElementById(
+        "current-name"
+    ).textContent =
+        asset.name;
+
+
+    document.getElementById(
+        "current-category"
+    ).textContent =
+        category;
+
+
+    document.getElementById(
+        "file-name"
+    ).textContent =
+        asset.file;
+
+
+    document
+        .querySelectorAll(".asset-button")
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.file ===
+                    asset.file
+                );
+            }
+        );
+}
+
+
+/* ============================================================
+   27. RESET INSPECTOR
+============================================================ */
+
+function resetInspector() {
+
+    const ids = [
+        "mesh-count",
+        "triangle-count",
+        "material-count",
+        "texture-count",
+        "animation-count",
+        "load-time",
+        "dim-x",
+        "dim-y",
+        "dim-z"
+    ];
+
+
+    ids.forEach(
+        id => {
+
+            document.getElementById(
+                id
+            ).textContent = "—";
         }
     );
 
 
     document.getElementById(
-        "game-over"
-    ).style.display =
-        "none";
-
-
-    document.getElementById(
-        "hud"
-    ).style.display =
-        "block";
-
+        "animations"
+    ).innerHTML =
+        '<div class="empty">Loading animation data...</div>';
 }
 
 
-/* =========================================================
-   RESIZE
-========================================================= */
+/* ============================================================
+   28. STATUS
+============================================================ */
 
-window.addEventListener(
-    "resize",
-    () => {
+function setStatus(
+    text,
+    type
+) {
 
-        camera.aspect =
-            window.innerWidth /
-            window.innerHeight;
-
-
-        camera.updateProjectionMatrix();
-
-
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
+    const element =
+        document.getElementById(
+            "status"
         );
 
-    }
-);
+
+    element.textContent =
+        text;
 
 
-/* =========================================================
-   GAME LOOP
-========================================================= */
+    element.className =
+        "status " +
+        (
+            type === "loading"
+                ? "loading"
+                : type === "error"
+                    ? "error"
+                    : ""
+        );
+}
 
-function animate(
-    currentTime
+
+/* ============================================================
+   29. LOADING UI
+============================================================ */
+
+function showLoading(
+    text
 ) {
+
+    document.getElementById(
+        "loading"
+    ).style.display =
+        "block";
+
+
+    document.getElementById(
+        "loading-text"
+    ).textContent =
+        text;
+}
+
+
+function hideLoading() {
+
+    document.getElementById(
+        "loading"
+    ).style.display =
+        "none";
+}
+
+
+/* ============================================================
+   30. ERROR UI
+============================================================ */
+
+function showError(
+    file,
+    error
+) {
+
+    const box =
+        document.getElementById(
+            "error-box"
+        );
+
+
+    document.getElementById(
+        "error-message"
+    ).textContent =
+        "Three.js could not parse or fetch this model. Check the browser console for the detailed loader error.";
+
+
+    document.getElementById(
+        "error-path"
+    ).textContent =
+        "./" + file;
+
+
+    box.style.display =
+        "block";
+}
+
+
+function hideError() {
+
+    document.getElementById(
+        "error-box"
+    ).style.display =
+        "none";
+}
+
+
+/* ============================================================
+   31. SIDEBAR
+============================================================ */
+
+function toggleSidebar() {
+
+    document
+        .getElementById("sidebar")
+        .classList.toggle(
+            "open"
+        );
+}
+
+
+/* ============================================================
+   32. KEYBOARD SHORTCUTS
+============================================================ */
+
+function onKeyDown(event) {
+
+    if (
+        event.target &&
+        (
+            event.target.tagName === "INPUT" ||
+            event.target.tagName === "TEXTAREA"
+        )
+    ) {
+        return;
+    }
+
+
+    const key =
+        event.key.toLowerCase();
+
+
+    if (key === "r") {
+        resetCamera();
+    }
+
+
+    if (key === "f") {
+        frameModel();
+    }
+
+
+    if (key === "w") {
+        toggleWireframe();
+    }
+
+
+    if (key === "g") {
+        toggleGrid();
+    }
+
+
+    if (key === "s") {
+        toggleShadows();
+    }
+}
+
+
+/* ============================================================
+   33. RESIZE
+============================================================ */
+
+function onResize() {
+
+    const container =
+        document.getElementById(
+            "canvas-container"
+        );
+
+
+    const width =
+        container.clientWidth;
+
+
+    const height =
+        container.clientHeight;
+
+
+    if (
+        width <= 0 ||
+        height <= 0
+    ) {
+        return;
+    }
+
+
+    camera.aspect =
+        width / height;
+
+
+    camera.updateProjectionMatrix();
+
+
+    renderer.setSize(
+        width,
+        height,
+        false
+    );
+}
+
+
+/* ============================================================
+   34. FPS
+============================================================ */
+
+function updateFPS() {
+
+    fpsFrames++;
+
+
+    const now =
+        performance.now();
+
+
+    if (
+        now - fpsLastTime >= 500
+    ) {
+
+        const fps =
+            Math.round(
+                fpsFrames /
+                (
+                    (now - fpsLastTime) /
+                    1000
+                )
+            );
+
+
+        document.getElementById(
+            "fps"
+        ).textContent =
+            "FPS: " + fps;
+
+
+        fpsFrames = 0;
+
+        fpsLastTime =
+            now;
+    }
+}
+
+
+/* ============================================================
+   35. ANIMATION LOOP
+============================================================ */
+
+function animate() {
 
     requestAnimationFrame(
         animate
@@ -1687,32 +2925,18 @@ function animate(
 
 
     const delta =
-        Math.min(
-            (currentTime -
-            lastTime) /
-            1000,
-            0.05
-        );
+        clock.getDelta();
 
 
-    lastTime =
-        currentTime;
+    if (mixer) {
 
-
-    if (
-        gameStarted &&
-        !crashed
-    ) {
-
-        updatePlayer(
+        mixer.update(
             delta
         );
-
-        updateTraffic();
-
-        checkCollisions();
-
     }
+
+
+    controls.update();
 
 
     renderer.render(
@@ -1720,115 +2944,16 @@ function animate(
         camera
     );
 
+
+    updateFPS();
 }
 
 
-/* =========================================================
-   INITIALIZATION
-========================================================= */
+/* ============================================================
+   START
+============================================================ */
 
-async function initialize() {
-
-    try {
-
-        document.getElementById(
-            "loading-text"
-        ).textContent =
-            "Initializing 3D engine...";
-
-
-        initThree();
-
-
-        document.getElementById(
-            "loading-progress"
-        ).style.width =
-            "25%";
-
-
-        await loadPlayer();
-
-
-        document.getElementById(
-            "loading-progress"
-        ).style.width =
-            "70%";
-
-
-        document.getElementById(
-            "loading-text"
-        ).textContent =
-            "Loading traffic...";
-
-
-        loadTraffic();
-
-
-        document.getElementById(
-            "loading-progress"
-        ).style.width =
-            "100%";
-
-
-        document.getElementById(
-            "loading-text"
-        ).textContent =
-            "Ready!";
-
-
-        setTimeout(
-            () => {
-
-                document.getElementById(
-                    "loading"
-                ).style.display =
-                    "none";
-
-
-                document.getElementById(
-                    "menu"
-                ).style.display =
-                    "flex";
-
-            },
-            700
-        );
-
-
-    }
-    catch (error) {
-
-        console.error(
-            "GAME INITIALIZATION FAILED:",
-            error
-        );
-
-
-        document.getElementById(
-            "loading-text"
-        ).textContent =
-            "Could not load car.glb";
-
-
-        document.getElementById(
-            "loading-text"
-        ).style.color =
-            "#ff5555";
-
-    }
-
-}
-
-
-/* =========================================================
-   BOOT
-========================================================= */
-
-initialize();
-
-animate(
-    performance.now()
-);
+init();
 
 </script>
 
