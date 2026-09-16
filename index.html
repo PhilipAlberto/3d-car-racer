@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sunny Highway Racer 3D - Advanced Physics & Terrain</title>
+  <title>Sunny Highway Racer 3D - Fixed Terrain & Physics</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body { overflow: hidden; background: #cce0ff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -247,60 +247,72 @@
     sunMesh.position.set(120, 140, -400);
     scene.add(sunMesh);
 
-    // 4. TERRAIN & EVEVATION MATHEMATICAL MAP SYSTEM (Hills & Sweeping Curves)
-    const roadWidth = 22;
-    const terrainLength = 3000;
-    const segments = 600;
-
+    // 4. MATHEMATICAL TERRAIN SYSTEM (Continuous Global Coordinates)
     function getTerrainHeight(z) {
-      // 45-degree equivalent hills using wave harmonics
-      return Math.sin(z * 0.012) * 22 + Math.cos(z * 0.005) * 15;
+      // Smooth 45-degree hill peaks using continuous wave functions
+      return Math.sin(z * 0.015) * 18 + Math.cos(z * 0.006) * 12;
     }
 
     function getTerrainSlope(z) {
-      const delta = 0.1;
+      const delta = 0.2;
       return (getTerrainHeight(z - delta) - getTerrainHeight(z + delta)) / (2 * delta);
     }
 
-    // Generate Dynamic Curved Road Mesh
-    const roadGeo = new THREE.PlaneGeometry(roadWidth, terrainLength, 1, segments);
-    roadGeo.rotateX(-Math.PI / 2);
-
-    const posAttr = roadGeo.attributes.position;
-    for (let i = 0; i < posAttr.count; i++) {
-      const z = posAttr.getZ(i);
-      posAttr.setY(i, getTerrainHeight(z));
-    }
-    roadGeo.computeVertexNormals();
+    // Dynamic Chunked Terrain Tiles
+    const roadWidth = 22;
+    const tileLength = 100;
+    const totalTiles = 15;
+    const tileSegments = 40;
+    const roadTiles = [];
+    const grassTiles = [];
 
     const roadMat = new THREE.MeshStandardMaterial({ color: 0x333639, roughness: 0.7, metalness: 0.1 });
-    const road = new THREE.Mesh(roadGeo, roadMat);
-    road.receiveShadow = true;
-    scene.add(road);
-
-    // Generate Dynamic Landscape / Grass Mesh
-    const grassGeo = new THREE.PlaneGeometry(500, terrainLength, 30, segments);
-    grassGeo.rotateX(-Math.PI / 2);
-
-    const gPos = grassGeo.attributes.position;
-    for (let i = 0; i < gPos.count; i++) {
-      const z = gPos.getZ(i);
-      gPos.setY(i, getTerrainHeight(z) - 0.1);
-    }
-    grassGeo.computeVertexNormals();
-
     const grassMat = new THREE.MeshStandardMaterial({ color: 0x5a8247, roughness: 0.9, metalness: 0.05 });
-    const grassMesh = new THREE.Mesh(grassGeo, grassMat);
-    grassMesh.receiveShadow = true;
-    scene.add(grassMesh);
+
+    function createTileGeometry(width, isRoad) {
+      const geo = new THREE.PlaneGeometry(width, tileLength, 1, tileSegments);
+      geo.rotateX(-Math.PI / 2);
+      return geo;
+    }
+
+    function updateTileTerrain(mesh, startZ) {
+      const pos = mesh.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const localZ = pos.getZ(i);
+        const globalZ = startZ - localZ - (tileLength / 2);
+        pos.setY(i, getTerrainHeight(globalZ));
+      }
+      mesh.geometry.computeVertexNormals();
+      mesh.geometry.attributes.position.needsUpdate = true;
+      mesh.position.z = startZ - (tileLength / 2);
+    }
+
+    for (let i = 0; i < totalTiles; i++) {
+      const startZ = -i * tileLength;
+
+      const rGeo = createTileGeometry(roadWidth, true);
+      const rMesh = new THREE.Mesh(rGeo, roadMat);
+      rMesh.receiveShadow = true;
+      scene.add(rMesh);
+      updateTileTerrain(rMesh, startZ);
+      roadTiles.push(rMesh);
+
+      const gGeo = createTileGeometry(400, false);
+      const gMesh = new THREE.Mesh(gGeo, grassMat);
+      gMesh.position.y = -0.05;
+      gMesh.receiveShadow = true;
+      scene.add(gMesh);
+      updateTileTerrain(gMesh, startZ);
+      grassTiles.push(gMesh);
+    }
 
     // Road Markings
     const laneMarkers = [];
     const yellowMat = new THREE.MeshBasicMaterial({ color: 0xffc400 });
     const whiteMat = new THREE.MeshBasicMaterial({ color: 0xf0f0f0 });
 
-    for (let i = 0; i < 100; i++) {
-      const zPos = -i * 30;
+    for (let i = 0; i < 80; i++) {
+      const zPos = -i * 25;
       [-0.4, 0.4].forEach(offset => {
         const line = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 8), yellowMat);
         line.rotation.x = -Math.PI / 2;
@@ -342,9 +354,9 @@
       houseList.push(house);
     }
 
-    for (let i = 0; i < 40; i++) {
-      createHouse(-24, -i * 70);
-      createHouse(24, -i * 70 - 35);
+    for (let i = 0; i < 30; i++) {
+      createHouse(-24, -i * 60);
+      createHouse(24, -i * 60 - 30);
     }
 
     // 6. LOAD PLAYER CAR
@@ -352,6 +364,7 @@
     scene.add(playerGroup);
 
     let isModelLoaded = false;
+    let vehicleHeightOffset = 0.5; // Offset to keep tires perfectly on top of asphalt
     const playerWidth = 1.6;
     const playerLength = 3.6;
 
@@ -371,8 +384,9 @@
         bbox.setFromObject(model);
         const center = bbox.getCenter(new THREE.Vector3());
         model.position.sub(center);
-        model.position.y += (size.y * scaleFactor) / 2;
-
+        
+        vehicleHeightOffset = (size.y * scaleFactor) / 2;
+        model.position.y += vehicleHeightOffset;
         model.rotation.y = Math.PI;
 
         model.traverse((child) => {
@@ -513,13 +527,12 @@
       ctx.fillText('KM/H', cx, cy + 44);
     }
 
-    // 9. GAME STATE & DRIFT PHYSICS
+    // 9. GAME STATE & PHYSICS
     let isGameStarted = false;
     let isGameOver = false;
     let speed = 0;
     let score = 0;
     
-    // Smooth Steering & Drift Parameters
     let sideVelocity = 0;
     let currentYaw = 0;
     let currentRoll = 0;
@@ -528,7 +541,7 @@
     let showroomTime = 0;
 
     const maxSpeed = 1.1;
-    const accel = 0.003; // Smooth start acceleration curve
+    const accel = 0.005; 
     const friction = 0.988;
     const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
 
@@ -547,14 +560,15 @@
     function animate() {
       requestAnimationFrame(animate);
 
-      // SHOWROOM INTRO ORBIT & ZOOM
+      // SHOWROOM INTRO PREVIEW
       if (!isGameStarted) {
         showroomTime += 0.015;
         const radius = 7 + Math.sin(showroomTime * 0.8) * 2.5;
+        const groundY = getTerrainHeight(playerGroup.position.z);
         camera.position.x = Math.sin(showroomTime) * radius;
         camera.position.z = Math.cos(showroomTime) * radius + playerGroup.position.z;
-        camera.position.y = getTerrainHeight(playerGroup.position.z) + 2.5 + Math.sin(showroomTime * 0.5) * 0.8;
-        camera.lookAt(playerGroup.position.x, getTerrainHeight(playerGroup.position.z) + 0.8, playerGroup.position.z);
+        camera.position.y = groundY + 2.5 + Math.sin(showroomTime * 0.5) * 0.8;
+        camera.lookAt(playerGroup.position.x, groundY + 0.8, playerGroup.position.z);
 
         renderer.render(scene, camera);
         return;
@@ -562,7 +576,7 @@
 
       if (isGameOver) return;
 
-      // 1. REALISTIC ACCELERATION & DRIVING CONTROLS
+      // 1. DRIVING & ACCELERATION CONTROLS
       if (keys.ArrowUp) {
         speed = Math.min(speed + accel, maxSpeed);
       } else if (keys.ArrowDown) {
@@ -571,15 +585,15 @@
         speed *= friction;
       }
 
-      // 2. REALISTIC DRIFT & STEERING DYNAMICS
-      const turnForce = 0.028 * (Math.abs(speed) / maxSpeed + 0.15);
+      // 2. SMOOTH STEERING & DRIFT DYNAMICS
+      const turnForce = 0.028 * (Math.abs(speed) / maxSpeed + 0.2);
       
       if (keys.ArrowLeft) {
         sideVelocity -= turnForce;
       } else if (keys.ArrowRight) {
         sideVelocity += turnForce;
       } else {
-        sideVelocity *= 0.85; // Lateral tire drag/grip decay
+        sideVelocity *= 0.85;
       }
 
       sideVelocity = Math.max(-0.4, Math.min(0.4, sideVelocity));
@@ -588,7 +602,6 @@
         playerGroup.position.x += sideVelocity;
         playerGroup.position.x = Math.max(-9.2, Math.min(9.2, playerGroup.position.x));
 
-        // Smooth Body Roll & Drift Yaw Rotation
         const targetYaw = -sideVelocity * 1.8;
         const targetRoll = sideVelocity * 0.6;
 
@@ -601,13 +614,23 @@
 
       playerGroup.position.z -= speed;
 
-      // Update Elevation & Pitch of Player Car on Hills
+      // Dynamic Height & Pitch Calculation for 45-Degree Slopes
       const currentGroundY = getTerrainHeight(playerGroup.position.z);
       const slope = getTerrainSlope(playerGroup.position.z);
+      
       playerGroup.position.y = currentGroundY;
       playerGroup.rotation.x = -Math.atan(slope);
 
-      // 3. UPDATE TRAFFIC & ELEVATION ALIGNMENT
+      // Infinite Looping Road Segment Manager
+      roadTiles.forEach((tile, index) => {
+        if (tile.position.z - (tileLength / 2) > playerGroup.position.z + 20) {
+          const newStartZ = tile.position.z + (tileLength / 2) - (totalTiles * tileLength);
+          updateTileTerrain(tile, newStartZ);
+          updateTileTerrain(grassTiles[index], newStartZ);
+        }
+      });
+
+      // 3. TRAFFIC OBSTACLES & ELEVATION ALIGNMENT
       trafficList.forEach(t => {
         t.position.z -= t.userData.speed;
         t.position.y = getTerrainHeight(t.position.z);
@@ -632,7 +655,7 @@
           t.userData.speed = 0.20 + (Math.random() * 0.15);
         }
 
-        // Collision Check
+        // Collision Logic
         const dx = Math.abs(playerGroup.position.x - t.position.x);
         const dz = Math.abs(playerGroup.position.z - t.position.z);
         
@@ -661,24 +684,24 @@
       sunLight.position.z = playerGroup.position.z - 40;
       sunMesh.position.z = playerGroup.position.z - 400;
 
-      // Update Lane Markers along the curved terrain
+      // Update Lane Markers along current Z position
       laneMarkers.forEach(m => {
-        let absZ = playerGroup.position.z + (m.userData.relZ % 1800);
-        if (absZ > playerGroup.position.z + 20) absZ -= 1800;
+        let absZ = playerGroup.position.z + (m.userData.relZ % 2000);
+        if (absZ > playerGroup.position.z + 20) absZ -= 2000;
         m.position.set(m.userData.offsetX, getTerrainHeight(absZ) + 0.08, absZ);
         m.rotation.x = -Math.PI / 2 - Math.atan(getTerrainSlope(absZ));
       });
 
-      // Update Houses along the curved terrain
+      // Update Houses along current Z position
       houseList.forEach(h => {
-        let absZ = playerGroup.position.z + (h.userData.relZ % 2100);
-        if (absZ > playerGroup.position.z + 40) absZ -= 2100;
+        let absZ = playerGroup.position.z + (h.userData.relZ % 1800);
+        if (absZ > playerGroup.position.z + 30) absZ -= 1800;
         const hy = getTerrainHeight(absZ);
         h.position.set(h.userData.offsetX, hy, absZ);
         h.rotation.x = -Math.atan(getTerrainSlope(absZ));
       });
 
-      // 4. DYNAMIC GAMEPLAY CAMERA WITH SLOPE SMOOTHING
+      // 4. DYNAMIC SLOPE-AWARE CAMERA
       const targetCamX = playerGroup.position.x * 0.75;
       const targetCamY = playerGroup.position.y + 3.2 + (speed * 0.8);
       const targetCamZ = playerGroup.position.z + 7.5 + (speed * 1.5);
