@@ -3,541 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>car.glb — Direction Calibration</title>
+  <title>Asset World Builder & Calibration</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { overflow: hidden; background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace, sans-serif; color: #f8fafc; }
-    #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+    body { overflow: hidden; background: #0f172a; font-family: system-ui, -apple-system, sans-serif; color: #f8fafc; }
+    #viewport { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
 
-    /* UI Overlay Containers */
+    /* UI Overlay */
     .panel {
       position: absolute; z-index: 10;
-      background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(12px); border-radius: 8px; padding: 14px;
-      font-size: 12px; line-height: 1.5; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px); border-radius: 8px; padding: 14px; font-size: 12px;
+    }
+    #panel-left { top: 20px; left: 20px; width: 260px; }
+    #panel-right { top: 20px; right: 20px; width: 280px; }
+    
+    #status-badge {
+      position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 20;
+      background: #1e293b; color: #38ef7d; border: 1px solid #38ef7d;
+      padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: bold;
     }
     
-    #header { top: 15px; left: 50%; transform: translateX(-50%); text-align: center; padding: 8px 24px; }
-    #header h1 { font-size: 15px; letter-spacing: 1px; color: #38ef7d; font-weight: 700; text-transform: uppercase; }
-
-    #footer { bottom: 15px; left: 50%; transform: translateX(-50%); text-align: center; color: #94a3b8; padding: 6px 16px; }
-
-    #panel-left { top: 70px; left: 20px; width: 280px; }
-    #panel-right { top: 70px; right: 20px; width: 300px; max-height: calc(100vh - 100px); overflow-y: auto; }
-
-    /* UI Elements */
-    h2 { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 4px; }
-    .section { margin-bottom: 14px; }
-    .info-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-    .info-label { color: #64748b; }
-    .info-val { font-weight: 600; color: #f1f5f9; }
-
-    /* Buttons & Controls */
-    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
     button {
       background: #1e293b; color: #f8fafc; border: 1px solid rgba(255,255,255,0.15);
-      padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
-      cursor: pointer; transition: all 0.2s ease; outline: none;
+      padding: 8px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;
+      width: 100%; margin-top: 6px;
     }
-    button:hover { background: #334155; border-color: #38ef7d; color: #38ef7d; }
-    button.active { background: #38ef7d; color: #0f172a; border-color: #38ef7d; font-weight: 700; }
-
-    /* Sliders */
-    .slider-group { margin-top: 8px; }
-    .slider-label { display: flex; justify-content: space-between; margin-bottom: 2px; }
-    input[type=range] {
-      width: 100%; -webkit-appearance: none; background: #1e293b; height: 6px; border-radius: 3px; outline: none;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #38ef7d; cursor: pointer;
-    }
-
-    #loader {
-      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f172a;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      z-index: 100; color: #fff; transition: opacity 0.5s ease;
-    }
-    .spinner {
-      width: 36px; height: 36px; border: 3px solid #1e293b; border-top: 3px solid #38ef7d;
-      border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    button:hover { border-color: #38ef7d; color: #38ef7d; }
   </style>
 
+  <!-- Reliable CDN Dependencies -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
 </head>
 <body>
 
-  <div id="loader">
-    <div class="spinner"></div>
-    <div style="font-size: 13px; letter-spacing: 1px; color: #94a3b8;">LOADING CAR.GLB...</div>
-  </div>
-
-  <div id="header" class="panel">
-    <h1>car.glb — Direction Calibration</h1>
-  </div>
+  <div id="status-badge">Initializing 3D Engine...</div>
 
   <div id="panel-left" class="panel">
-    <div class="section">
-      <h2>Car Direction Inspector</h2>
-      <p style="color: #94a3b8; font-size: 11px; margin-bottom: 10px;">
-        Determine the raw export orientation of <code style="color:#38ef7d;">car.glb</code>. Use buttons to map local axis to vehicle front.
-      </p>
-      <div class="info-row">
-        <span class="info-label">Current Forward Axis:</span>
-        <span class="info-val" id="lbl-current-axis" style="color: #38ef7d;">-Z</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Active Yaw Offset:</span>
-        <span class="info-val" id="lbl-active-yaw">0°</span>
-      </div>
-    </div>
-    
-    <div class="section">
-      <h2>Visual Axis Reference</h2>
-      <div class="info-row"><span style="color:#ef4444; font-weight:bold;">Red (X Axis):</span> <span class="info-val">Pitch / Lateral</span></div>
-      <div class="info-row"><span style="color:#22c55e; font-weight:bold;">Green (Y Axis):</span> <span class="info-val">Up / Elevation</span></div>
-      <div class="info-row"><span style="color:#3b82f6; font-weight:bold;">Blue (Z Axis):</span> <span class="info-val">Roll / Forward-Back</span></div>
-    </div>
+    <h3 style="color:#38ef7d; margin-bottom:8px;">ASSET WORLD BUILDER</h3>
+    <p style="color:#94a3b8; font-size:11px;">Inspect and calibrate project assets.</p>
+    <button onclick="loadCarAsset()">Load car.glb</button>
   </div>
 
   <div id="panel-right" class="panel">
-    <!-- Model Information -->
-    <div class="section">
-      <h2>Model Information</h2>
-      <div class="info-row"><span class="info-label">File:</span><span class="info-val">car.glb</span></div>
-      <div class="info-row"><span class="info-label">Model Loaded:</span><span class="info-val" id="info-loaded" style="color:#ef4444;">NO</span></div>
-      <div class="info-row"><span class="info-label">Width (X):</span><span class="info-val" id="info-width">-</span></div>
-      <div class="info-row"><span class="info-label">Height (Y):</span><span class="info-val" id="info-height">-</span></div>
-      <div class="info-row"><span class="info-label">Depth (Z):</span><span class="info-val" id="info-depth">-</span></div>
-      <div class="info-row"><span class="info-label">Mesh Count:</span><span class="info-val" id="info-meshes">-</span></div>
-      <div class="info-row"><span class="info-label">Triangle Count:</span><span class="info-val" id="info-tris">-</span></div>
-      <div class="info-row"><span class="info-label">Animation Count:</span><span class="info-val" id="info-anims">-</span></div>
-      <div class="info-row"><span class="info-label">Current Rotation Y:</span><span class="info-val" id="info-roty">0°</span></div>
-      <div class="info-row"><span class="info-label">Current Scale:</span><span class="info-val" id="info-scale">1.00</span></div>
-    </div>
-
-    <!-- Direction Test -->
-    <div class="section">
-      <h2>Direction Test (Tested Axis)</h2>
-      <div class="btn-grid">
-        <button id="btn-axis-negz" class="active" onclick="setTestDirection('-Z')">FRONT = -Z</button>
-        <button id="btn-axis-posz" onclick="setTestDirection('+Z')">FRONT = +Z</button>
-        <button id="btn-axis-posx" onclick="setTestDirection('+X')">FRONT = +X</button>
-        <button id="btn-axis-negx" onclick="setTestDirection('-X')">FRONT = -X</button>
-      </div>
-    </div>
-
-    <!-- 90-Degree Rotation Test -->
-    <div class="section">
-      <h2>90° Rotation Test</h2>
-      <div class="btn-grid">
-        <button onclick="rotateCar(90)">Rotate Left 90°</button>
-        <button onclick="rotateCar(-90)">Rotate Right 90°</button>
-        <button onclick="rotateCar(180)">Rotate 180°</button>
-        <button onclick="resetCarRotation()">Reset Rotation</button>
-      </div>
-    </div>
-
-    <!-- Calibration Controls -->
-    <div class="section">
-      <h2>Calibration Panel</h2>
-      <div class="slider-group">
-        <div class="slider-label"><span class="info-label">Scale:</span><span class="info-val" id="val-scale">1.00</span></div>
-        <input type="range" id="slider-scale" min="0.1" max="5.0" step="0.05" value="1.0" oninput="updateCalibration()">
-      </div>
-      <div class="slider-group">
-        <div class="slider-label"><span class="info-label">Rotation Y (°):</span><span class="info-val" id="val-roty">0°</span></div>
-        <input type="range" id="slider-roty" min="-180" max="180" step="1" value="0" oninput="updateCalibration()">
-      </div>
-      <div class="slider-group">
-        <div class="slider-label"><span class="info-label">Ground Offset (Y):</span><span class="info-val" id="val-offset">0.00</span></div>
-        <input type="range" id="slider-offset" min="-2.0" max="2.0" step="0.02" value="0" oninput="updateCalibration()">
-      </div>
-      <div class="btn-grid" style="margin-top: 10px;">
-        <button style="border-color:#38ef7d; color:#38ef7d;" onclick="saveCalibration()">SAVE CALIBRATION</button>
-        <button onclick="resetCalibration()">RESET CALIBRATION</button>
-      </div>
-    </div>
+    <h3 style="color:#94a3b8; margin-bottom:8px;">INSPECTOR</h3>
+    <div id="inspect-info" style="color:#94a3b8;">No asset active</div>
   </div>
 
-  <div id="footer" class="panel">
-    Use your mouse to orbit around the vehicle and identify the true front of the model.
-  </div>
-
-  <div id="canvas-container"></div>
+  <div id="viewport"></div>
 
   <script>
-    // System Variables
-    let scene, camera, renderer, controls;
-    let carContainerGroup = new THREE.Group();
-    let loadedCarModel = null;
-    let axisHelper, forwardArrowGroup, frontMarkerMesh;
-    let carBounds = { width: 0, height: 0, depth: 0, center: new THREE.Vector3() };
-    
-    // State
-    let currentForwardAxis = '-Z';
-    let baseRotationY = 0; // Manual test rotation
-    let sliderScale = 1.0;
-    let sliderRotY = 0;
-    let sliderOffset = 0;
+    const badge = document.getElementById('status-badge');
+    let scene, camera, renderer, controls, currentModel;
 
-    const initialCameraPos = new THREE.Vector3(8, 5, 12);
+    function initEngine() {
+      // Check if libraries loaded correctly
+      if (typeof THREE === 'undefined' || typeof THREE.OrbitControls === 'undefined') {
+        badge.style.color = '#ef4444';
+        badge.style.borderColor = '#ef4444';
+        badge.innerText = 'Error: Three.js CDN blocked or unreachable.';
+        return;
+      }
 
-    function init() {
-      const container = document.getElementById('canvas-container');
+      const container = document.getElementById('viewport');
 
-      // 1. Scene Setup
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x1e293b);
-      scene.fog = new THREE.FogExp2(0x1e293b, 0.015);
+      scene.background = new THREE.Color(0x87ceeb);
 
-      // 2. Camera Setup
-      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.copy(initialCameraPos);
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(8, 5, 12);
 
-      // 3. Renderer Setup
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
-      // 4. Orbit Controls
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controls.maxPolarAngle = Math.PI / 2 + 0.05; // Stay slightly above/at ground
 
-      // Double Click to Reset Camera
-      window.addEventListener('dblclick', () => {
-        resetCamera();
-      });
-
-      // 5. Lighting Setup
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-      scene.add(ambientLight);
-
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x334155, 0.6);
-      hemiLight.position.set(0, 50, 0);
-      scene.add(hemiLight);
-
+      // Lighting
+      scene.add(new THREE.AmbientLight(0xffffff, 0.7));
       const sun = new THREE.DirectionalLight(0xffffff, 1.2);
       sun.position.set(20, 40, 20);
-      sun.castShadow = true;
-      sun.shadow.mapSize.width = 2048;
-      sun.shadow.mapSize.height = 2048;
-      sun.shadow.bias = -0.0001;
       scene.add(sun);
 
-      // 6. Neutral Ground Plane
-      const groundGeo = new THREE.PlaneGeometry(200, 200);
-      const groundMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8, metalness: 0.1 });
-      const ground = new THREE.Mesh(groundGeo, groundMat);
+      // Ground Plane
+      const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(100, 100),
+        new THREE.MeshStandardMaterial({ color: 0x334155 })
+      );
       ground.rotation.x = -Math.PI / 2;
-      ground.position.y = 0;
-      ground.receiveShadow = true;
       scene.add(ground);
 
-      // Grid helper for clear ground reference
-      const grid = new THREE.GridHelper(200, 100, 0x475569, 0x334155);
-      grid.position.y = 0.01;
-      scene.add(grid);
-
-      // Add parent container for the car and direction indicators
-      scene.add(carContainerGroup);
-
-      // 7. Load Local Storage Calibration
-      loadSavedCalibration();
-
-      // 8. Load Car Asset
-      loadCarModel();
-
-      // Window Resize Listener
-      window.addEventListener('resize', onWindowResize);
-
-      // Animation Loop
+      badge.innerText = 'Ready — Three.js Loaded';
       animate();
     }
 
-    function createDirectionIndicators(extent) {
-      if (axisHelper) scene.remove(axisHelper);
-      if (forwardArrowGroup) scene.remove(forwardArrowGroup);
+    function loadCarAsset() {
+      if (!THREE.GLTFLoader) return;
+      badge.innerText = 'Loading car.glb...';
 
-      // RGB Axes (X=Red, Y=Green, Z=Blue)
-      axisHelper = new THREE.AxesHelper(extent * 1.5);
-      axisHelper.renderOrder = 1;
-      scene.add(axisHelper);
-
-      // Direction Arrow Group (Forward / Back Markers)
-      forwardArrowGroup = new THREE.Group();
-
-      // Forward Shaft & Cone
-      const arrowLength = extent * 1.8;
-      const arrowGeo = new THREE.CylinderGeometry(0.08, 0.08, arrowLength, 16);
-      const arrowMat = new THREE.MeshBasicMaterial({ color: 0x38ef7d });
-      const shaft = new THREE.Mesh(arrowGeo, arrowMat);
-      shaft.rotation.x = Math.PI / 2;
-      shaft.position.z = -arrowLength / 2;
-
-      const headGeo = new THREE.ConeGeometry(0.3, 0.8, 16);
-      const headMat = new THREE.MeshBasicMaterial({ color: 0x38ef7d });
-      const head = new THREE.Mesh(headGeo, headMat);
-      head.rotation.x = -Math.PI / 2;
-      head.position.z = -arrowLength;
-
-      forwardArrowGroup.add(shaft, head);
-
-      // Text Labels Canvas Sprites
-      const fwdLabel = createTextSprite("FORWARD", "#38ef7d");
-      fwdLabel.position.set(0, 0.6, -arrowLength - 0.5);
-      forwardArrowGroup.add(fwdLabel);
-
-      const backLabel = createTextSprite("BACK", "#ef4444");
-      backLabel.position.set(0, 0.6, 1.0);
-      forwardArrowGroup.add(backLabel);
-
-      forwardArrowGroup.position.y = extent * 0.8;
-      scene.add(forwardArrowGroup);
-
-      // Visual Front Spherical Marker
-      const markerGeo = new THREE.SphereGeometry(0.25, 16, 16);
-      const markerMat = new THREE.MeshBasicMaterial({ color: 0x38ef7d, wireframe: true });
-      frontMarkerMesh = new THREE.Mesh(markerGeo, markerMat);
-      scene.add(frontMarkerMesh);
-
-      updateIndicatorOrientation();
-    }
-
-    function createTextSprite(text, colorHex) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 256; canvas.height = 64;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = colorHex;
-      ctx.font = 'Bold 28px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, 128, 32);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      const spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false });
-      const sprite = new THREE.Sprite(spriteMat);
-      sprite.scale.set(3, 0.75, 1);
-      return sprite;
-    }
-
-    function loadCarModel() {
       const loader = new THREE.GLTFLoader();
-      
       loader.load('./car.glb', (gltf) => {
-        loadedCarModel = gltf.scene;
+        if (currentModel) scene.remove(currentModel);
+        currentModel = gltf.scene;
+        scene.add(currentModel);
 
-        let meshCount = 0;
-        let triangleCount = 0;
-
-        // Inspect and center car geometry
-        loadedCarModel.traverse((child) => {
-          if (child.isMesh) {
-            meshCount++;
-            if (child.geometry) {
-              const geom = child.geometry;
-              if (geom.index) {
-                triangleCount += geom.index.count / 3;
-              } else if (geom.attributes.position) {
-                triangleCount += geom.attributes.position.count / 3;
-              }
-            }
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
-        });
-
-        // Compute Bounding Box
-        const bbox = new THREE.Box3().setFromObject(loadedCarModel);
-        bbox.getSize(carBounds);
-        bbox.getCenter(carBounds.center);
-
-        // Center car model on origin
-        loadedCarModel.position.x = -carBounds.center.x;
-        loadedCarModel.position.y = -bbox.min.y; // Sit flat on plane
-        loadedCarModel.position.z = -carBounds.center.z;
-
-        carContainerGroup.add(loadedCarModel);
-
-        // Set orbit target to car bounding box center
-        controls.target.set(0, carBounds.y / 2, 0);
-        resetCamera();
-
-        // Build Indicators based on size
-        const maxDim = Math.max(carBounds.x, carBounds.y, carBounds.z);
-        createDirectionIndicators(maxDim);
-
-        // Update UI Panel Specs
-        document.getElementById('info-loaded').innerText = 'YES';
-        document.getElementById('info-loaded').style.color = '#38ef7d';
-        document.getElementById('info-width').innerText = carBounds.x.toFixed(2) + 'm';
-        document.getElementById('info-height').innerText = carBounds.y.toFixed(2) + 'm';
-        document.getElementById('info-depth').innerText = carBounds.z.toFixed(2) + 'm';
-        document.getElementById('info-meshes').innerText = meshCount;
-        document.getElementById('info-tris').innerText = Math.round(triangleCount).toLocaleString();
-        document.getElementById('info-anims').innerText = gltf.animations ? gltf.animations.length : 0;
-
-        applyTransformations();
-
-        // Dismiss loading screen
-        const loaderEl = document.getElementById('loader');
-        loaderEl.style.opacity = '0';
-        setTimeout(() => loaderEl.style.display = 'none', 500);
-
-      }, undefined, (error) => {
-        console.error("Failed loading ./car.glb:", error);
-        document.getElementById('loader').innerHTML = `
-          <div style="color:#ef4444; font-weight:bold; font-size:14px; text-align:center; padding: 20px;">
-            ERROR: Could not load car.glb model from project root.<br>
-            <span style="font-size:11px; color:#94a3b8; font-weight:normal;">Ensure file exists as <code>./car.glb</code> in repository root.</span>
-          </div>`;
+        badge.innerText = 'car.glb Loaded Successfully';
+        document.getElementById('inspect-info').innerText = 'Model: car.glb Active';
+      }, undefined, (err) => {
+        badge.style.color = '#ef4444';
+        badge.innerText = 'Failed to find ./car.glb in root directory.';
       });
-    }
-
-    function setTestDirection(axis) {
-      currentForwardAxis = axis;
-      document.querySelectorAll('#panel-right .btn-grid button').forEach(b => {
-        if(b.id.startsWith('btn-axis-')) b.classList.remove('active');
-      });
-      
-      const btnMap = { '-Z':'btn-axis-negz', '+Z':'btn-axis-posz', '+X':'btn-axis-posx', '-X':'btn-axis-negx' };
-      if(btnMap[axis]) document.getElementById(btnMap[axis]).classList.add('active');
-
-      document.getElementById('lbl-current-axis').innerText = axis;
-      updateIndicatorOrientation();
-    }
-
-    function updateIndicatorOrientation() {
-      if (!forwardArrowGroup || !frontMarkerMesh) return;
-
-      let rotY = 0;
-      let markerPos = new THREE.Vector3();
-      const extZ = carBounds.z / 2 + 0.5;
-      const extX = carBounds.x / 2 + 0.5;
-
-      switch (currentForwardAxis) {
-        case '-Z': rotY = 0; markerPos.set(0, carBounds.y / 2, -extZ); break;
-        case '+Z': rotY = Math.PI; markerPos.set(0, carBounds.y / 2, extZ); break;
-        case '+X': rotY = -Math.PI / 2; markerPos.set(extX, carBounds.y / 2, 0); break;
-        case '-X': rotY = Math.PI / 2; markerPos.set(-extX, carBounds.y / 2, 0); break;
-      }
-
-      forwardArrowGroup.rotation.y = rotY;
-      frontMarkerMesh.position.copy(markerPos);
-    }
-
-    function rotateCar(deg) {
-      baseRotationY = (baseRotationY + deg) % 360;
-      applyTransformations();
-    }
-
-    function resetCarRotation() {
-      baseRotationY = 0;
-      applyTransformations();
-    }
-
-    function updateCalibration() {
-      sliderScale = parseFloat(document.getElementById('slider-scale').value);
-      sliderRotY = parseFloat(document.getElementById('slider-roty').value);
-      sliderOffset = parseFloat(document.getElementById('slider-offset').value);
-
-      document.getElementById('val-scale').innerText = sliderScale.toFixed(2);
-      document.getElementById('val-roty').innerText = sliderRotY.toFixed(0) + '°';
-      document.getElementById('val-offset').innerText = sliderOffset.toFixed(2);
-
-      applyTransformations();
-    }
-
-    function applyTransformations() {
-      const totalRotDeg = (baseRotationY + sliderRotY) % 360;
-      const totalRotRad = (totalRotDeg * Math.PI) / 180;
-
-      carContainerGroup.scale.set(sliderScale, sliderScale, sliderScale);
-      carContainerGroup.rotation.y = totalRotRad;
-      carContainerGroup.position.y = sliderOffset;
-
-      document.getElementById('info-roty').innerText = totalRotDeg.toFixed(0) + '°';
-      document.getElementById('info-scale').innerText = sliderScale.toFixed(2);
-      document.getElementById('lbl-active-yaw').innerText = totalRotDeg.toFixed(0) + '°';
-    }
-
-    function saveCalibration() {
-      const config = {
-        forwardAxis: currentForwardAxis,
-        scale: sliderScale,
-        rotationY: sliderRotY,
-        offsetY: sliderOffset,
-        baseRotationY: baseRotationY
-      };
-      localStorage.setItem('car_glb_calibration', JSON.stringify(config));
-      alert("Calibration settings saved to localStorage!");
-    }
-
-    function loadSavedCalibration() {
-      const saved = localStorage.getItem('car_glb_calibration');
-      if (saved) {
-        try {
-          const config = JSON.parse(saved);
-          currentForwardAxis = config.forwardAxis || '-Z';
-          sliderScale = config.scale || 1.0;
-          sliderRotY = config.rotationY || 0;
-          sliderOffset = config.offsetY || 0;
-          baseRotationY = config.baseRotationY || 0;
-
-          document.getElementById('slider-scale').value = sliderScale;
-          document.getElementById('slider-roty').value = sliderRotY;
-          document.getElementById('slider-offset').value = sliderOffset;
-
-          updateCalibration();
-          setTestDirection(currentForwardAxis);
-        } catch(e) { console.warn("Could not parse saved calibration", e); }
-      }
-    }
-
-    function resetCalibration() {
-      sliderScale = 1.0;
-      sliderRotY = 0;
-      sliderOffset = 0;
-      baseRotationY = 0;
-
-      document.getElementById('slider-scale').value = 1.0;
-      document.getElementById('slider-roty').value = 0;
-      document.getElementById('slider-offset').value = 0;
-
-      updateCalibration();
-      setTestDirection('-Z');
-      localStorage.removeItem('car_glb_calibration');
-    }
-
-    function resetCamera() {
-      camera.position.copy(initialCameraPos);
-      if (carBounds.y) controls.target.set(0, carBounds.y / 2, 0);
-      else controls.target.set(0, 0, 0);
-      controls.update();
-    }
-
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     function animate() {
       requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
+      if (controls) controls.update();
+      if (renderer && scene && camera) renderer.render(scene, camera);
     }
 
-    window.onload = init;
+    window.addEventListener('resize', () => {
+      if (!camera || !renderer) return;
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Start engine on window load
+    window.onload = initEngine;
   </script>
 </body>
 </html>
