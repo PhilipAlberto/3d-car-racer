@@ -3,134 +3,147 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D World Asset & Environment Viewer</title>
+  <title>Infinite Road Loop - Road.glb</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { overflow: hidden; background: #0f172a; font-family: system-ui, -apple-system, sans-serif; }
+    body { overflow: hidden; background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
     
     #hud {
       position: absolute; top: 20px; left: 20px; z-index: 10;
-      background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(8px); padding: 14px 20px; border-radius: 12px; color: #fff;
+      background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px); padding: 14px 22px; border-radius: 12px; color: #fff;
+      pointer-events: none;
     }
-    #hud h1 { font-size: 16px; color: #38ef7d; margin-bottom: 4px; }
+    #hud h1 { font-size: 18px; color: #38ef7d; margin-bottom: 4px; font-weight: 800; }
     #hud p { font-size: 12px; color: #94a3b8; }
+
+    #loader {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f172a;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 100; color: #fff; transition: opacity 0.5s ease;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 4px solid #1e293b; border-top: 4px solid #38ef7d;
+      border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 
-  <div id="canvas-container"></div>
-  <div id="hud">
-    <h1>3D World Viewer</h1>
-    <p>Left Click: Rotate | Right Click: Pan | Scroll: Zoom</p>
+  <div id="loader">
+    <div class="spinner"></div>
+    <div style="font-size: 14px; letter-spacing: 1px; color: #94a3b8;">LOADING ROAD.GLB...</div>
   </div>
 
+  <div id="hud">
+    <h1>INFINITE ROAD LOOP</h1>
+    <p>Model: Road.glb | Mouse Drag to Rotate & Move</p>
+  </div>
+
+  <div id="canvas-container"></div>
+
   <script>
+    // Scene Setup
+    const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87ceeb);
+    scene.fog = new THREE.FogExp2(0x87ceeb, 0.003);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 20, 50);
+    camera.position.set(0, 15, 35);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
-    document.getElementById('canvas-container').appendChild(renderer.domElement);
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
 
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-    sun.position.set(50, 80, 50);
+    const sun = new THREE.DirectionalLight(0xfffaed, 1.5);
+    sun.position.set(50, 80, 40);
     sun.castShadow = true;
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height = 2048;
     scene.add(sun);
 
-    // FIXED: Ground Plane
-    const groundGeo = new THREE.PlaneGeometry(500, 500);
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = 0;
-    ground.receiveShadow = true;
-    scene.add(ground);
+    // Road Loop Manager
+    const roadChunks = [];
+    const totalChunks = 8;
+    let chunkLength = 50; // Dynamic calculated length based on your GLB bounding box
+    let moveSpeed = 0.4;  // Velocity of the road moving forward
 
-    // FIXED: Road Mesh (Elevated Y = 0.05 to prevent invisible/Z-fighting rendering)
-    const roadGeo = new THREE.PlaneGeometry(24, 500);
-    const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 });
-    const road = new THREE.Mesh(roadGeo, roadMat);
-    road.rotation.x = -Math.PI / 2;
-    road.position.y = 0.05; 
-    road.receiveShadow = true;
-    scene.add(road);
-
-    // Lane Markings
-    const lineGeo = new THREE.PlaneGeometry(0.8, 500);
-    const lineMat = new THREE.MeshStandardMaterial({ color: 0xfacc15 });
-    const line = new THREE.Mesh(lineGeo, lineMat);
-    line.rotation.x = -Math.PI / 2;
-    line.position.y = 0.06;
-    scene.add(line);
-
-    // Animation System setup
-    const animationMixers = [];
     const gltfLoader = new THREE.GLTFLoader();
 
-    function loadAnimatedModel(path, posX, posZ) {
-      gltfLoader.load(path, (gltf) => {
-        const model = gltf.scene;
-        model.position.set(posX, 0.05, posZ);
-        
-        // Scale normalize
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        if (size.y > 0) {
-          const s = 4 / size.y;
-          model.scale.set(s, s, s);
-        }
-        
-        scene.add(model);
+    gltfLoader.load('./Road.glb', (gltf) => {
+      const baseModel = gltf.scene;
 
-        // FIXED: Play all embedded skeletal clip animations
-        if (gltf.animations && gltf.animations.length > 0) {
-          const mixer = new THREE.AnimationMixer(model);
-          gltf.animations.forEach((clip) => {
-            const action = mixer.clipAction(clip);
-            action.play();
-          });
-          animationMixers.push(mixer);
+      // Calculate true bounding length of your Road.glb model
+      const bbox = new THREE.Box3().setFromObject(baseModel);
+      const size = bbox.getSize(new THREE.Vector3());
+      chunkLength = size.z > 0 ? size.z : 50;
+
+      baseModel.traverse(c => {
+        if (c.isMesh) {
+          c.castShadow = true;
+          c.receiveShadow = true;
         }
-      }, undefined, (err) => {
-        console.warn("Failed loading asset:", path);
       });
-    }
 
-    // Load Animated Models from your folder
-    loadAnimatedModel('./Animated (2).glb', -5, 10);
-    loadAnimatedModel('./Ped (2).glb', 5, 10);
+      // Instantiate continuous road loop chunks
+      for (let i = 0; i < totalChunks; i++) {
+        const chunk = baseModel.clone();
+        chunk.position.set(0, 0, -i * chunkLength);
+        scene.add(chunk);
+        roadChunks.push(chunk);
+      }
 
-    // Render loop with time delta updates for animation playback
-    const clock = new THREE.Clock();
+      // Hide Loader once ready
+      const loader = document.getElementById('loader');
+      loader.style.opacity = '0';
+      setTimeout(() => loader.style.display = 'none', 500);
 
+    }, undefined, (err) => {
+      console.error("Failed to load Road.glb. Ensure file name and path match.", err);
+      document.getElementById('loader').innerHTML = "<div style='color:#ef4444; font-weight:bold;'>Error loading Road.glb. Make sure Road.glb exists in the project root directory.</div>";
+    });
+
+    // Main Animation Loop
     function animate() {
       requestAnimationFrame(animate);
-      
-      const delta = clock.getDelta();
-      animationMixers.forEach(mixer => mixer.update(delta));
-      
+
+      // Scroll and recycle road chunks endlessly
+      if (roadChunks.length > 0) {
+        roadChunks.forEach(chunk => {
+          chunk.position.z += moveSpeed;
+
+          // When a road chunk travels past the camera, snap it back to the end of the chain
+          if (chunk.position.z > chunkLength) {
+            chunk.position.z -= totalChunks * chunkLength;
+          }
+        });
+      }
+
       controls.update();
       renderer.render(scene, camera);
     }
 
     animate();
 
+    // Window Resize Handler
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
