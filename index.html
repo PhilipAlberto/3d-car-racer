@@ -353,7 +353,7 @@
         loader.load('./car.glb', (gltf) => {
             const model = gltf.scene;
             
-            // Rotate 180 degrees so it faces forward down the track
+            // Correct orientation to face forward
             model.rotation.y = Math.PI;
 
             const box = new THREE.Box3().setFromObject(model);
@@ -450,7 +450,6 @@
 
                 carX = Math.max(-boundsX, Math.min(boundsX, carX));
                 playerCar.position.x = carX;
-                // Keep the 180° orientation while leaning on turn
                 playerCar.rotation.y = Math.PI - (carX - playerCar.position.x) * 0.15;
                 
                 playerCar.boundingBox.setFromObject(playerCar);
