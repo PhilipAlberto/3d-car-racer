@@ -1,4509 +1,543 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>3D Car Racer — Asset World Builder</title>
-
-<style>
-:root {
-  --bg: #071018;
-  --panel: #0b1621;
-  --panel2: #101e2b;
-  --line: #203344;
-  --text: #eaf2f8;
-  --muted: #8fa4b5;
-  --accent: #38bdf8;
-  --good: #35d07f;
-  --warn: #f6c453;
-  --bad: #ff657a;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Arial,
-    sans-serif;
-}
-
-#app {
-  display: grid;
-  grid-template-columns: 290px 1fr 310px;
-  width: 100%;
-  height: 100%;
-}
-
-/* =========================================
-   SIDEBARS
-========================================= */
-
-aside {
-  background: linear-gradient(
-    180deg,
-    #0a1520,
-    #08121b
-  );
-
-  border-right: 1px solid var(--line);
-  overflow-y: auto;
-}
-
-#right {
-  border-left: 1px solid var(--line);
-  border-right: 0;
-}
-
-header {
-  height: 66px;
-
-  padding: 13px 16px;
-
-  border-bottom: 1px solid var(--line);
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 10px;
-}
-
-h1 {
-  font-size: 15px;
-  margin: 0;
-
-  font-weight: 800;
-
-  letter-spacing: 0.4px;
-}
-
-.sub {
-  font-size: 11px;
-
-  color: var(--muted);
-
-  margin-top: 3px;
-}
-
-.section {
-  padding: 13px 14px;
-
-  border-bottom: 1px solid var(--line);
-}
-
-.section h2 {
-  font-size: 11px;
-
-  text-transform: uppercase;
-
-  letter-spacing: 1.2px;
-
-  color: #9fb5c6;
-
-  margin: 0 0 9px;
-}
-
-/* =========================================
-   VIEWPORT
-========================================= */
-
-#viewport {
-  position: relative;
-
-  min-width: 0;
-
-  background: #91b8d2;
-}
-
-canvas {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-}
-
-/* =========================================
-   BUTTONS
-========================================= */
-
-button,
-select,
-input {
-  font: inherit;
-}
-
-button {
-  border: 1px solid #294154;
-
-  background: #122332;
-
-  color: var(--text);
-
-  border-radius: 7px;
-
-  padding: 8px 10px;
-
-  cursor: pointer;
-}
-
-button:hover {
-  background: #183044;
-}
-
-button.primary {
-  background: #0b6f9d;
-
-  border-color: #1595cb;
-}
-
-button.good {
-  background: #145b40;
-
-  border-color: #21875f;
-}
-
-button.warn {
-  background: #654b12;
-
-  border-color: #9b741b;
-}
-
-.row {
-  display: flex;
-
-  gap: 7px;
-
-  flex-wrap: wrap;
-}
-
-.row > * {
-  flex: 1;
-}
-
-/* =========================================
-   ASSET LIST
-========================================= */
-
-.asset {
-  display: flex;
-
-  align-items: center;
-
-  gap: 8px;
-
-  padding: 7px 8px;
-
-  border: 1px solid transparent;
-
-  border-radius: 7px;
-
-  cursor: pointer;
-}
-
-.asset:hover {
-  background: #0f202e;
-}
-
-.asset.active {
-  background: #112b3c;
-
-  border-color: #22516c;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-
-  border-radius: 50%;
-
-  background: #657785;
-
-  flex: none;
-}
-
-.dot.loading {
-  background: var(--warn);
-}
-
-.dot.ok {
-  background: var(--good);
-}
-
-.dot.bad {
-  background: var(--bad);
-}
-
-.asset-name {
-  font-size: 12px;
-
-  white-space: nowrap;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-}
-
-.pill {
-  font-size: 10px;
-
-  color: #a9bfce;
-
-  margin-left: auto;
-}
-
-/* =========================================
-   INSPECTOR
-========================================= */
-
-.metric {
-  display: grid;
-
-  grid-template-columns: 1fr auto;
-
-  gap: 5px;
-
-  font-size: 11px;
-
-  padding: 3px 0;
-}
-
-.metric span:first-child {
-  color: var(--muted);
-}
-
-.metric span:last-child {
-  font-family: ui-monospace, monospace;
-
-  color: #d8e8f2;
-}
-
-label {
-  display: block;
-
-  font-size: 10px;
-
-  color: var(--muted);
-
-  margin: 9px 0 4px;
-}
-
-input[type="range"] {
-  width: 100%;
-}
-
-select {
-  width: 100%;
-
-  background: #0d1d2a;
-
-  color: var(--text);
-
-  border: 1px solid var(--line);
-
-  padding: 7px;
-
-  border-radius: 6px;
-}
-
-/* =========================================
-   TOP STATUS
-========================================= */
-
-#topbar {
-  position: absolute;
-
-  top: 12px;
-  left: 12px;
-  right: 12px;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  pointer-events: none;
-}
-
-#status {
-  background: rgba(5, 12, 18, 0.82);
-
-  border: 1px solid rgba(80, 130, 155, 0.35);
-
-  backdrop-filter: blur(7px);
-
-  padding: 8px 11px;
-
-  border-radius: 8px;
-
-  font-size: 11px;
-
-  pointer-events: auto;
-}
-
-#fps {
-  background: rgba(5, 12, 18, 0.82);
-
-  border: 1px solid rgba(80, 130, 155, 0.35);
-
-  padding: 8px 11px;
-
-  border-radius: 8px;
-
-  font: 11px ui-monospace, monospace;
-}
-
-/* =========================================
-   PROGRESS
-========================================= */
-
-#progressWrap {
-  height: 5px;
-
-  background: #12222e;
-
-  margin-top: 8px;
-
-  border-radius: 4px;
-
-  overflow: hidden;
-}
-
-#progress {
-  height: 100%;
-
-  width: 0;
-
-  background: var(--accent);
-
-  transition: width 0.2s;
-}
-
-/* =========================================
-   HELPERS
-========================================= */
-
-.hint {
-  font-size: 10px;
-
-  line-height: 1.5;
-
-  color: #8197a8;
-}
-
-.kbd {
-  font-family: ui-monospace, monospace;
-
-  background: #111f2b;
-
-  border: 1px solid #253c4e;
-
-  padding: 1px 4px;
-
-  border-radius: 4px;
-
-  color: #d7e8f2;
-}
-
-#toast {
-  position: absolute;
-
-  left: 50%;
-
-  bottom: 20px;
-
-  transform:
-    translateX(-50%)
-    translateY(20px);
-
-  background: #0a1721;
-
-  border: 1px solid #315067;
-
-  border-radius: 8px;
-
-  padding: 9px 14px;
-
-  font-size: 12px;
-
-  opacity: 0;
-
-  transition: 0.2s;
-
-  pointer-events: none;
-}
-
-#toast.show {
-  opacity: 1;
-
-  transform:
-    translateX(-50%)
-    translateY(0);
-}
-
-.check {
-  display: flex;
-
-  align-items: center;
-
-  gap: 7px;
-
-  font-size: 11px;
-
-  color: #b8cad6;
-
-  margin: 7px 0;
-}
-
-.check input {
-  accent-color: #38bdf8;
-}
-
-.small {
-  font-size: 10px;
-
-  color: var(--muted);
-}
-
-/* =========================================
-   MOBILE
-========================================= */
-
-@media (max-width: 1000px) {
-
-  #app {
-    grid-template-columns: 230px 1fr;
-  }
-
-  #right {
-    display: none;
-  }
-
-}
-
-@media (max-width: 700px) {
-
-  #app {
-    grid-template-columns: 1fr;
-  }
-
-  #left {
-    display: none;
-  }
-
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>car.glb — Direction Calibration</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { overflow: hidden; background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace, sans-serif; color: #f8fafc; }
+    #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+
+    /* UI Overlay Containers */
+    .panel {
+      position: absolute; z-index: 10;
+      background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px); border-radius: 8px; padding: 14px;
+      font-size: 12px; line-height: 1.5; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    #header { top: 15px; left: 50%; transform: translateX(-50%); text-align: center; padding: 8px 24px; }
+    #header h1 { font-size: 15px; letter-spacing: 1px; color: #38ef7d; font-weight: 700; text-transform: uppercase; }
+
+    #footer { bottom: 15px; left: 50%; transform: translateX(-50%); text-align: center; color: #94a3b8; padding: 6px 16px; }
+
+    #panel-left { top: 70px; left: 20px; width: 280px; }
+    #panel-right { top: 70px; right: 20px; width: 300px; max-height: calc(100vh - 100px); overflow-y: auto; }
+
+    /* UI Elements */
+    h2 { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 4px; }
+    .section { margin-bottom: 14px; }
+    .info-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .info-label { color: #64748b; }
+    .info-val { font-weight: 600; color: #f1f5f9; }
+
+    /* Buttons & Controls */
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+    button {
+      background: #1e293b; color: #f8fafc; border: 1px solid rgba(255,255,255,0.15);
+      padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s ease; outline: none;
+    }
+    button:hover { background: #334155; border-color: #38ef7d; color: #38ef7d; }
+    button.active { background: #38ef7d; color: #0f172a; border-color: #38ef7d; font-weight: 700; }
+
+    /* Sliders */
+    .slider-group { margin-top: 8px; }
+    .slider-label { display: flex; justify-content: space-between; margin-bottom: 2px; }
+    input[type=range] {
+      width: 100%; -webkit-appearance: none; background: #1e293b; height: 6px; border-radius: 3px; outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #38ef7d; cursor: pointer;
+    }
+
+    #loader {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f172a;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 100; color: #fff; transition: opacity 0.5s ease;
+    }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid #1e293b; border-top: 3px solid #38ef7d;
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
 </head>
-
 <body>
 
-<div id="app">
+  <div id="loader">
+    <div class="spinner"></div>
+    <div style="font-size: 13px; letter-spacing: 1px; color: #94a3b8;">LOADING CAR.GLB...</div>
+  </div>
 
-  <!-- =====================================
-       LEFT PANEL
-  ====================================== -->
+  <div id="header" class="panel">
+    <h1>car.glb — Direction Calibration</h1>
+  </div>
 
-  <aside id="left">
-
-    <header>
-
-      <div>
-
-        <h1>
-          ASSET WORLD BUILDER
-        </h1>
-
-        <div class="sub">
-          Real project assets • staged loading
-        </div>
-
-      </div>
-
-      <span
-        id="assetCount"
-        class="pill"
-      >
-        0/0
-      </span>
-
-    </header>
-
-
-    <!-- WORLD CONTROL -->
-
+  <div id="panel-left" class="panel">
     <div class="section">
-
-      <div class="row">
-
-        <button
-          id="loadWorld"
-          class="primary"
-        >
-          Build World
-        </button>
-
-        <button id="clearWorld">
-          Clear
-        </button>
-
+      <h2>Car Direction Inspector</h2>
+      <p style="color: #94a3b8; font-size: 11px; margin-bottom: 10px;">
+        Determine the raw export orientation of <code style="color:#38ef7d;">car.glb</code>. Use buttons to map local axis to vehicle front.
+      </p>
+      <div class="info-row">
+        <span class="info-label">Current Forward Axis:</span>
+        <span class="info-val" id="lbl-current-axis" style="color: #38ef7d;">-Z</span>
       </div>
-
-      <div id="progressWrap">
-
-        <div id="progress"></div>
-
+      <div class="info-row">
+        <span class="info-label">Active Yaw Offset:</span>
+        <span class="info-val" id="lbl-active-yaw">0°</span>
       </div>
-
-      <div
-        id="loadText"
-        class="small"
-        style="margin-top:6px"
-      >
-        Ready.
-      </div>
-
     </div>
-
-
-    <!-- CATEGORY SHORTCUTS -->
-
+    
     <div class="section">
-
-      <h2>
-        World Categories
-      </h2>
-
-      <div class="row">
-
-        <button data-cat="road">
-          Road
-        </button>
-
-        <button data-cat="buildings">
-          Buildings
-        </button>
-
-        <button data-cat="trees">
-          Trees
-        </button>
-
-        <button data-cat="vehicles">
-          Vehicles
-        </button>
-
-        <button data-cat="people">
-          People
-        </button>
-
-        <button data-cat="airport">
-          Airport
-        </button>
-
-        <button data-cat="aircraft">
-          Aircraft
-        </button>
-
-        <button data-cat="bridge">
-          Bridge
-        </button>
-
-      </div>
-
-      <div
-        class="hint"
-        style="margin-top:8px"
-      >
-        Click a category to inspect its first asset.
-        Double-click a category to hide/show that world zone.
-      </div>
-
+      <h2>Visual Axis Reference</h2>
+      <div class="info-row"><span style="color:#ef4444; font-weight:bold;">Red (X Axis):</span> <span class="info-val">Pitch / Lateral</span></div>
+      <div class="info-row"><span style="color:#22c55e; font-weight:bold;">Green (Y Axis):</span> <span class="info-val">Up / Elevation</span></div>
+      <div class="info-row"><span style="color:#3b82f6; font-weight:bold;">Blue (Z Axis):</span> <span class="info-val">Roll / Forward-Back</span></div>
     </div>
+  </div>
 
-
-    <!-- ASSET LIST -->
-
+  <div id="panel-right" class="panel">
+    <!-- Model Information -->
     <div class="section">
-
-      <h2>
-        Actual GLB Files
-      </h2>
-
-      <div id="assetList"></div>
-
+      <h2>Model Information</h2>
+      <div class="info-row"><span class="info-label">File:</span><span class="info-val">car.glb</span></div>
+      <div class="info-row"><span class="info-label">Model Loaded:</span><span class="info-val" id="info-loaded" style="color:#ef4444;">NO</span></div>
+      <div class="info-row"><span class="info-label">Width (X):</span><span class="info-val" id="info-width">-</span></div>
+      <div class="info-row"><span class="info-label">Height (Y):</span><span class="info-val" id="info-height">-</span></div>
+      <div class="info-row"><span class="info-label">Depth (Z):</span><span class="info-val" id="info-depth">-</span></div>
+      <div class="info-row"><span class="info-label">Mesh Count:</span><span class="info-val" id="info-meshes">-</span></div>
+      <div class="info-row"><span class="info-label">Triangle Count:</span><span class="info-val" id="info-tris">-</span></div>
+      <div class="info-row"><span class="info-label">Animation Count:</span><span class="info-val" id="info-anims">-</span></div>
+      <div class="info-row"><span class="info-label">Current Rotation Y:</span><span class="info-val" id="info-roty">0°</span></div>
+      <div class="info-row"><span class="info-label">Current Scale:</span><span class="info-val" id="info-scale">1.00</span></div>
     </div>
 
-
-    <!-- CONTROLS -->
-
+    <!-- Direction Test -->
     <div class="section">
-
-      <h2>
-        Controls
-      </h2>
-
-      <div class="hint">
-
-        Drag =
-        orbit camera
-
-        <br>
-
-        Wheel =
-        zoom
-
-        <br>
-
-        <span class="kbd">
-          W A S D
-        </span>
-        =
-        move test car
-
-        <br>
-
-        <span class="kbd">
-          R
-        </span>
-        =
-        reset camera
-
-        <br>
-
-        Click an asset =
-        inspect/calibrate
-
+      <h2>Direction Test (Tested Axis)</h2>
+      <div class="btn-grid">
+        <button id="btn-axis-negz" class="active" onclick="setTestDirection('-Z')">FRONT = -Z</button>
+        <button id="btn-axis-posz" onclick="setTestDirection('+Z')">FRONT = +Z</button>
+        <button id="btn-axis-posx" onclick="setTestDirection('+X')">FRONT = +X</button>
+        <button id="btn-axis-negx" onclick="setTestDirection('-X')">FRONT = -X</button>
       </div>
-
     </div>
 
-  </aside>
-
-
-  <!-- =====================================
-       3D VIEWPORT
-  ====================================== -->
-
-  <main id="viewport">
-
-    <div id="topbar">
-
-      <div id="status">
-        Loading Three.js…
-      </div>
-
-      <div id="fps">
-        -- FPS
-      </div>
-
-    </div>
-
-    <div id="toast"></div>
-
-  </main>
-
-
-  <!-- =====================================
-       RIGHT INSPECTOR
-  ====================================== -->
-
-  <aside id="right">
-
-    <header>
-
-      <div>
-
-        <h1>
-          INSPECTOR
-        </h1>
-
-        <div
-          class="sub"
-          id="selectedName"
-        >
-          Nothing selected
-        </div>
-
-      </div>
-
-    </header>
-
-
-    <!-- STATISTICS -->
-
+    <!-- 90-Degree Rotation Test -->
     <div class="section">
-
-      <h2>
-        Asset Statistics
-      </h2>
-
-      <div id="stats">
-
-        <div class="metric">
-          <span>Status</span>
-          <span>—</span>
-        </div>
-
-        <div class="metric">
-          <span>Size</span>
-          <span>—</span>
-        </div>
-
-        <div class="metric">
-          <span>Meshes</span>
-          <span>—</span>
-        </div>
-
-        <div class="metric">
-          <span>Triangles</span>
-          <span>—</span>
-        </div>
-
-        <div class="metric">
-          <span>Animations</span>
-          <span>—</span>
-        </div>
-
+      <h2>90° Rotation Test</h2>
+      <div class="btn-grid">
+        <button onclick="rotateCar(90)">Rotate Left 90°</button>
+        <button onclick="rotateCar(-90)">Rotate Right 90°</button>
+        <button onclick="rotateCar(180)">Rotate 180°</button>
+        <button onclick="resetCarRotation()">Reset Rotation</button>
       </div>
-
     </div>
 
-
-    <!-- CALIBRATION -->
-
+    <!-- Calibration Controls -->
     <div class="section">
-
-      <h2>
-        Calibration
-      </h2>
-
-      <label>
-        Forward Axis
-      </label>
-
-      <select id="axis">
-
-        <option value="0">
-          Forward = -Z
-        </option>
-
-        <option value="1">
-          Forward = +Z
-        </option>
-
-        <option value="2">
-          Forward = +X
-        </option>
-
-        <option value="3">
-          Forward = -X
-        </option>
-
-      </select>
-
-
-      <label>
-        Scale
-        <span id="scaleValue">
-          1.00
-        </span>
-      </label>
-
-      <input
-        id="scale"
-        type="range"
-        min="0.05"
-        max="8"
-        step="0.01"
-        value="1"
-      >
-
-
-      <label>
-        Ground Offset
-        <span id="groundValue">
-          0.00
-        </span>
-      </label>
-
-      <input
-        id="ground"
-        type="range"
-        min="-10"
-        max="10"
-        step="0.01"
-        value="0"
-      >
-
-
-      <div
-        class="row"
-        style="margin-top:9px"
-      >
-
-        <button id="rotL">
-          ↶ 90°
-        </button>
-
-        <button id="rotR">
-          ↷ 90°
-        </button>
-
-        <button id="resetCal">
-          Reset
-        </button>
-
+      <h2>Calibration Panel</h2>
+      <div class="slider-group">
+        <div class="slider-label"><span class="info-label">Scale:</span><span class="info-val" id="val-scale">1.00</span></div>
+        <input type="range" id="slider-scale" min="0.1" max="5.0" step="0.05" value="1.0" oninput="updateCalibration()">
       </div>
-
-
-      <button
-        id="saveCal"
-        class="good"
-        style="width:100%;margin-top:7px"
-      >
-        Save Calibration
-      </button>
-
-
-      <div
-        class="hint"
-        style="margin-top:8px"
-      >
-        Vehicle orientation is calibrated per model instead of forcing every vehicle to use the same direction.
+      <div class="slider-group">
+        <div class="slider-label"><span class="info-label">Rotation Y (°):</span><span class="info-val" id="val-roty">0°</span></div>
+        <input type="range" id="slider-roty" min="-180" max="180" step="1" value="0" oninput="updateCalibration()">
       </div>
-
-    </div>
-
-
-    <!-- DISPLAY -->
-
-    <div class="section">
-
-      <h2>
-        Display
-      </h2>
-
-      <label class="check">
-
-        <input
-          id="axes"
-          type="checkbox"
-          checked
-        >
-
-        Show Axes
-
-      </label>
-
-
-      <label class="check">
-
-        <input
-          id="forward"
-          type="checkbox"
-          checked
-        >
-
-        Show Forward Arrow
-
-      </label>
-
-
-      <label class="check">
-
-        <input
-          id="shadows"
-          type="checkbox"
-          checked
-        >
-
-        Shadows
-
-      </label>
-
-    </div>
-
-
-    <!-- ROADMAP -->
-
-    <div class="section">
-
-      <h2>
-        Build Architecture
-      </h2>
-
-      <div class="hint">
-
-        <b>Phase 1</b>
-        — asset ingestion + calibration
-
-        <br>
-
-        <b>Phase 2</b>
-        — world assembly + traffic
-
-        <br>
-
-        <b>Phase 3</b>
-        — driving physics + collisions
-
-        <br>
-
-        <b>Phase 4</b>
-        — AI traffic + pedestrians
-
-        <br>
-
-        <b>Phase 5</b>
-        — missions, events + polish
-
+      <div class="slider-group">
+        <div class="slider-label"><span class="info-label">Ground Offset (Y):</span><span class="info-val" id="val-offset">0.00</span></div>
+        <input type="range" id="slider-offset" min="-2.0" max="2.0" step="0.02" value="0" oninput="updateCalibration()">
       </div>
-
+      <div class="btn-grid" style="margin-top: 10px;">
+        <button style="border-color:#38ef7d; color:#38ef7d;" onclick="saveCalibration()">SAVE CALIBRATION</button>
+        <button onclick="resetCalibration()">RESET CALIBRATION</button>
+      </div>
     </div>
+  </div>
 
-  </aside>
+  <div id="footer" class="panel">
+    Use your mouse to orbit around the vehicle and identify the true front of the model.
+  </div>
 
-</div>
+  <div id="canvas-container"></div>
 
+  <script>
+    // System Variables
+    let scene, camera, renderer, controls;
+    let carContainerGroup = new THREE.Group();
+    let loadedCarModel = null;
+    let axisHelper, forwardArrowGroup, frontMarkerMesh;
+    let carBounds = { width: 0, height: 0, depth: 0, center: new THREE.Vector3() };
+    
+    // State
+    let currentForwardAxis = '-Z';
+    let baseRotationY = 0; // Manual test rotation
+    let sliderScale = 1.0;
+    let sliderRotY = 0;
+    let sliderOffset = 0;
 
-<!-- =========================================
-     THREE.JS
-========================================= -->
+    const initialCameraPos = new THREE.Vector3(8, 5, 12);
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    function init() {
+      const container = document.getElementById('canvas-container');
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+      // 1. Scene Setup
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x1e293b);
+      scene.fog = new THREE.FogExp2(0x1e293b, 0.015);
 
+      // 2. Camera Setup
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.copy(initialCameraPos);
 
-<script>
+      // 3. Renderer Setup
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
 
-"use strict";
+      // 4. Orbit Controls
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 + 0.05; // Stay slightly above/at ground
 
+      // Double Click to Reset Camera
+      window.addEventListener('dblclick', () => {
+        resetCamera();
+      });
 
-/* ============================================================
-   ACTUAL PROJECT ASSET REGISTRY
-   ============================================================ */
+      // 5. Lighting Setup
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
 
-const ASSETS = {
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x334155, 0.6);
+      hemiLight.position.set(0, 50, 0);
+      scene.add(hemiLight);
 
-  road: [
+      const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+      sun.position.set(20, 40, 20);
+      sun.castShadow = true;
+      sun.shadow.mapSize.width = 2048;
+      sun.shadow.mapSize.height = 2048;
+      sun.shadow.bias = -0.0001;
+      scene.add(sun);
 
-    {
-      file: "Road.glb",
-      label: "Road"
+      // 6. Neutral Ground Plane
+      const groundGeo = new THREE.PlaneGeometry(200, 200);
+      const groundMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8, metalness: 0.1 });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = 0;
+      ground.receiveShadow = true;
+      scene.add(ground);
+
+      // Grid helper for clear ground reference
+      const grid = new THREE.GridHelper(200, 100, 0x475569, 0x334155);
+      grid.position.y = 0.01;
+      scene.add(grid);
+
+      // Add parent container for the car and direction indicators
+      scene.add(carContainerGroup);
+
+      // 7. Load Local Storage Calibration
+      loadSavedCalibration();
+
+      // 8. Load Car Asset
+      loadCarModel();
+
+      // Window Resize Listener
+      window.addEventListener('resize', onWindowResize);
+
+      // Animation Loop
+      animate();
     }
 
-  ],
+    function createDirectionIndicators(extent) {
+      if (axisHelper) scene.remove(axisHelper);
+      if (forwardArrowGroup) scene.remove(forwardArrowGroup);
 
+      // RGB Axes (X=Red, Y=Green, Z=Blue)
+      axisHelper = new THREE.AxesHelper(extent * 1.5);
+      axisHelper.renderOrder = 1;
+      scene.add(axisHelper);
 
-  buildings: [
+      // Direction Arrow Group (Forward / Back Markers)
+      forwardArrowGroup = new THREE.Group();
 
-    "Building (1).glb",
-    "Building (2).glb",
-    "Building (3).glb",
-    "Building (4).glb",
-    "Building (5).glb",
-    "Building (6).glb",
-    "Building (7).glb",
-    "Building (8).glb",
-    "Building (9).glb",
-    "Building (10).glb",
-    "Building (11).glb",
-    "Building (12).glb",
-    "Building (13).glb",
-    "Building (14).glb",
-    "Building (19).glb",
-    "Building (20).glb",
-    "Building (24).glb"
+      // Forward Shaft & Cone
+      const arrowLength = extent * 1.8;
+      const arrowGeo = new THREE.CylinderGeometry(0.08, 0.08, arrowLength, 16);
+      const arrowMat = new THREE.MeshBasicMaterial({ color: 0x38ef7d });
+      const shaft = new THREE.Mesh(arrowGeo, arrowMat);
+      shaft.rotation.x = Math.PI / 2;
+      shaft.position.z = -arrowLength / 2;
 
-  ].map(file => ({
+      const headGeo = new THREE.ConeGeometry(0.3, 0.8, 16);
+      const headMat = new THREE.MeshBasicMaterial({ color: 0x38ef7d });
+      const head = new THREE.Mesh(headGeo, headMat);
+      head.rotation.x = -Math.PI / 2;
+      head.position.z = -arrowLength;
 
-    file,
+      forwardArrowGroup.add(shaft, head);
 
-    label:
-      file.replace(".glb", "")
+      // Text Labels Canvas Sprites
+      const fwdLabel = createTextSprite("FORWARD", "#38ef7d");
+      fwdLabel.position.set(0, 0.6, -arrowLength - 0.5);
+      forwardArrowGroup.add(fwdLabel);
 
-  })),
+      const backLabel = createTextSprite("BACK", "#ef4444");
+      backLabel.position.set(0, 0.6, 1.0);
+      forwardArrowGroup.add(backLabel);
 
+      forwardArrowGroup.position.y = extent * 0.8;
+      scene.add(forwardArrowGroup);
 
-  trees: [
+      // Visual Front Spherical Marker
+      const markerGeo = new THREE.SphereGeometry(0.25, 16, 16);
+      const markerMat = new THREE.MeshBasicMaterial({ color: 0x38ef7d, wireframe: true });
+      frontMarkerMesh = new THREE.Mesh(markerGeo, markerMat);
+      scene.add(frontMarkerMesh);
 
-    "Tree (2).glb",
-    "Tree (3).glb",
-    "Tree (4).glb",
-    "Tree (5).glb",
-    "Tree (6).glb",
-    "Tree (8).glb"
-
-  ].map(file => ({
-
-    file,
-
-    label:
-      file.replace(".glb", "")
-
-  })),
-
-
-  vehicles: [
-
-    "car.glb",
-    "Car (1).glb",
-    "Car (3).glb",
-    "Car (6).glb",
-    "Car (7).glb",
-
-    "T-vehicle (1).glb",
-    "T-vehicle (2).glb",
-    "T-vehicle (3).glb"
-
-  ].map(file => ({
-
-    file,
-
-    label:
-      file.replace(".glb", "")
-
-  })),
-
-
-  people: [
-
-    "Ped (1).glb",
-    "Ped (2).glb",
-    "Animated (2).glb"
-
-  ].map(file => ({
-
-    file,
-
-    label:
-      file.replace(".glb", "")
-
-  })),
-
-
-  airport: [
-
-    {
-      file: "Airport 2.glb",
-      label: "Airport 2"
+      updateIndicatorOrientation();
     }
 
-  ],
+    function createTextSprite(text, colorHex) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = colorHex;
+      ctx.font = 'Bold 28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 128, 32);
 
-
-  aircraft: [
-
-    "Aeroplane (1).glb",
-    "Aeroplane (2).glb",
-    "Aeroplane (3).glb"
-
-  ].map(file => ({
-
-    file,
-
-    label:
-      file.replace(".glb", "")
-
-  })),
-
-
-  bridge: [
-
-    {
-      file: "bridge.glb",
-      label: "Bridge"
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(3, 0.75, 1);
+      return sprite;
     }
 
-  ]
-
-};
-
-
-const allAssets = [];
-
-
-for (
-  const [category, list]
-  of Object.entries(ASSETS)
-) {
-
-  for (const item of list) {
-
-    allAssets.push({
-
-      ...item,
-
-      category
-
-    });
-
-  }
-
-}
-
-
-/* ============================================================
-   GLOBAL STATE
-   ============================================================ */
-
-const state = {
-
-  loaded:
-    new Map(),
-
-  selected:
-    null,
-
-  calibration:
-    JSON.parse(
-      localStorage.getItem(
-        "assetCalibrationV1"
-      ) || "{}"
-    ),
-
-  clock:
-    new THREE.Clock(),
-
-  mixers:
-    [],
-
-  keys:
-    {},
-
-  player:
-    null
-
-};
-
-
-/* ============================================================
-   HELPERS
-   ============================================================ */
-
-const $ = id =>
-  document.getElementById(id);
-
-
-function toast(text) {
-
-  const el =
-    $("toast");
-
-  el.textContent =
-    text;
-
-  el.classList.add(
-    "show"
-  );
-
-  clearTimeout(
-    toast.timer
-  );
-
-  toast.timer =
-    setTimeout(
-      () => {
-
-        el.classList.remove(
-          "show"
-        );
-
-      },
-      2200
-    );
-
-}
-
-
-function setStatus(text) {
-
-  $("status").textContent =
-    text;
-
-}
-
-
-function categoryName(category) {
-
-  const names = {
-
-    road:
-      "Road",
-
-    buildings:
-      "Buildings",
-
-    trees:
-      "Trees",
-
-    vehicles:
-      "Vehicles",
-
-    people:
-      "People",
-
-    airport:
-      "Airport",
-
-    aircraft:
-      "Aircraft",
-
-    bridge:
-      "Bridge"
-
-  };
-
-  return names[category]
-    || category;
-
-}
-
-
-/* ============================================================
-   THREE.JS SCENE
-   ============================================================ */
-
-const scene =
-  new THREE.Scene();
-
-
-scene.background =
-  new THREE.Color(
-    0x91b8d2
-  );
-
-
-scene.fog =
-  new THREE.Fog(
-    0x91b8d2,
-    180,
-    650
-  );
-
-
-const camera =
-  new THREE.PerspectiveCamera(
-    55,
-    1,
-    0.1,
-    3000
-  );
-
-
-const renderer =
-  new THREE.WebGLRenderer({
-
-    antialias:
-      true,
-
-    powerPreference:
-      "high-performance"
-
-  });
-
-
-renderer.setPixelRatio(
-  Math.min(
-    window.devicePixelRatio || 1,
-    1.5
-  )
-);
-
-
-renderer.outputEncoding =
-  THREE.sRGBEncoding;
-
-
-renderer.shadowMap.enabled =
-  true;
-
-
-renderer.shadowMap.type =
-  THREE.PCFSoftShadowMap;
-
-
-$("viewport")
-  .appendChild(
-    renderer.domElement
-  );
-
-
-/* ============================================================
-   LIGHTING
-   ============================================================ */
-
-const hemi =
-  new THREE.HemisphereLight(
-    0xbfe5ff,
-    0x4d5b48,
-    1.35
-  );
-
-
-scene.add(
-  hemi
-);
-
-
-const sun =
-  new THREE.DirectionalLight(
-    0xffffff,
-    2.2
-  );
-
-
-sun.position.set(
-  120,
-  180,
-  80
-);
-
-
-sun.castShadow =
-  true;
-
-
-sun.shadow.mapSize.set(
-  1024,
-  1024
-);
-
-
-sun.shadow.camera.left =
-  -250;
-
-sun.shadow.camera.right =
-  250;
-
-sun.shadow.camera.top =
-  250;
-
-sun.shadow.camera.bottom =
-  -250;
-
-
-scene.add(
-  sun
-);
-
-
-/* ============================================================
-   GROUND
-   ============================================================ */
-
-const ground =
-  new THREE.Mesh(
-
-    new THREE.PlaneGeometry(
-      1800,
-      1800
-    ),
-
-    new THREE.MeshStandardMaterial({
-
-      color:
-        0x4d604e,
-
-      roughness:
-        1
-
-    })
-
-  );
-
-
-ground.rotation.x =
-  -Math.PI / 2;
-
-
-ground.position.y =
-  -0.03;
-
-
-ground.receiveShadow =
-  true;
-
-
-scene.add(
-  ground
-);
-
-
-/* ============================================================
-   WORLD GROUP
-   ============================================================ */
-
-const world =
-  new THREE.Group();
-
-
-world.name =
-  "REAL_ASSET_WORLD";
-
-
-scene.add(
-  world
-);
-
-
-/* ============================================================
-   INSPECTION HELPER GROUP
-   ============================================================ */
-
-const helperGroup =
-  new THREE.Group();
-
-
-scene.add(
-  helperGroup
-);
-
-
-/* ============================================================
-   GLTF LOADER
-   ============================================================ */
-
-const loader =
-  new THREE.GLTFLoader();
-
-
-/* ============================================================
-   MODEL STATISTICS
-   ============================================================ */
-
-function traverseStats(root) {
-
-  let meshes = 0;
-
-  let triangles = 0;
-
-
-  root.traverse(
-    object => {
-
-      if (!object.isMesh) {
-        return;
-      }
-
-
-      meshes++;
-
-
-      const geometry =
-        object.geometry;
-
-
-      if (geometry) {
-
-        if (geometry.index) {
-
-          triangles +=
-            geometry.index.count / 3;
-
-        }
-
-        else if (
-          geometry.attributes.position
-        ) {
-
-          triangles +=
-            geometry
-              .attributes
-              .position
-              .count / 3;
-
-        }
-
-      }
-
-
-      object.castShadow =
-        true;
-
-      object.receiveShadow =
-        true;
-
-    }
-  );
-
-
-  return {
-
-    meshes,
-
-    triangles:
-      Math.round(triangles)
-
-  };
-
-}
-
-
-/* ============================================================
-   BOUNDING BOX
-   ============================================================ */
-
-function getBounds(root) {
-
-  const box =
-    new THREE.Box3()
-      .setFromObject(root);
-
-
-  const size =
-    new THREE.Vector3();
-
-
-  box.getSize(
-    size
-  );
-
-
-  const center =
-    new THREE.Vector3();
-
-
-  box.getCenter(
-    center
-  );
-
-
-  return {
-
-    box,
-
-    size,
-
-    center
-
-  };
-
-}
-
-
-/* ============================================================
-   LOAD ONE ASSET
-   ============================================================ */
-
-function loadAsset(item) {
-
-  if (
-    state.loaded.has(
-      item.file
-    )
-  ) {
-
-    return Promise.resolve(
-      state.loaded.get(
-        item.file
-      )
-    );
-
-  }
-
-
-  return new Promise(
-    (resolve, reject) => {
-
-      loader.load(
-
-        encodeURI(
-          "./" + item.file
-        ),
-
-        gltf => {
-
-          const root =
-            gltf.scene
-            ||
-            gltf.scenes[0];
-
-
-          const stats =
-            traverseStats(
-              root
-            );
-
-
-          const bounds =
-            getBounds(
-              root
-            );
-
-
-          const record = {
-
-            item,
-
-            gltf,
-
-            root,
-
-            stats,
-
-            originalSize:
-              bounds.size.clone(),
-
-            animations:
-              gltf.animations || []
-
-          };
-
-
-          state.loaded.set(
-            item.file,
-            record
-          );
-
-
-          /*
-             Animated models:
-             start their first available animation.
-          */
-
-          if (
-            gltf.animations &&
-            gltf.animations.length
-          ) {
-
-            const mixer =
-              new THREE.AnimationMixer(
-                root
-              );
-
-
-            gltf.animations.forEach(
-              clip => {
-
-                mixer
-                  .clipAction(clip)
-                  .play();
-
+    function loadCarModel() {
+      const loader = new THREE.GLTFLoader();
+      
+      loader.load('./car.glb', (gltf) => {
+        loadedCarModel = gltf.scene;
+
+        let meshCount = 0;
+        let triangleCount = 0;
+
+        // Inspect and center car geometry
+        loadedCarModel.traverse((child) => {
+          if (child.isMesh) {
+            meshCount++;
+            if (child.geometry) {
+              const geom = child.geometry;
+              if (geom.index) {
+                triangleCount += geom.index.count / 3;
+              } else if (geom.attributes.position) {
+                triangleCount += geom.attributes.position.count / 3;
               }
-            );
-
-
-            state.mixers.push(
-              mixer
-            );
-
+            }
+            child.castShadow = true;
+            child.receiveShadow = true;
           }
+        });
 
+        // Compute Bounding Box
+        const bbox = new THREE.Box3().setFromObject(loadedCarModel);
+        bbox.getSize(carBounds);
+        bbox.getCenter(carBounds.center);
 
-          resolve(
-            record
-          );
+        // Center car model on origin
+        loadedCarModel.position.x = -carBounds.center.x;
+        loadedCarModel.position.y = -bbox.min.y; // Sit flat on plane
+        loadedCarModel.position.z = -carBounds.center.z;
 
-        },
+        carContainerGroup.add(loadedCarModel);
 
+        // Set orbit target to car bounding box center
+        controls.target.set(0, carBounds.y / 2, 0);
+        resetCamera();
 
-        xhr => {
+        // Build Indicators based on size
+        const maxDim = Math.max(carBounds.x, carBounds.y, carBounds.z);
+        createDirectionIndicators(maxDim);
 
-          const percentage =
-            xhr.total
-              ? Math.round(
-                  xhr.loaded /
-                  xhr.total *
-                  100
-                )
-              : 0;
+        // Update UI Panel Specs
+        document.getElementById('info-loaded').innerText = 'YES';
+        document.getElementById('info-loaded').style.color = '#38ef7d';
+        document.getElementById('info-width').innerText = carBounds.x.toFixed(2) + 'm';
+        document.getElementById('info-height').innerText = carBounds.y.toFixed(2) + 'm';
+        document.getElementById('info-depth').innerText = carBounds.z.toFixed(2) + 'm';
+        document.getElementById('info-meshes').innerText = meshCount;
+        document.getElementById('info-tris').innerText = Math.round(triangleCount).toLocaleString();
+        document.getElementById('info-anims').innerText = gltf.animations ? gltf.animations.length : 0;
 
+        applyTransformations();
 
-          $("loadText")
-            .textContent =
-              `Loading ${item.file} ${percentage}%`;
+        // Dismiss loading screen
+        const loaderEl = document.getElementById('loader');
+        loaderEl.style.opacity = '0';
+        setTimeout(() => loaderEl.style.display = 'none', 500);
 
-        },
-
-
-        error => {
-
-          reject(
-            error
-          );
-
-        }
-
-      );
-
-    }
-  );
-
-}
-
-
-/* ============================================================
-   SEQUENTIAL LOADING
-   ============================================================ */
-
-async function loadSequential(
-  list
-) {
-
-  let completed = 0;
-
-
-  for (
-    const item
-    of list
-  ) {
-
-    updateAssetDot(
-      item.file,
-      "loading"
-    );
-
-
-    try {
-
-      await loadAsset(
-        item
-      );
-
-
-      updateAssetDot(
-        item.file,
-        "ok"
-      );
-
+      }, undefined, (error) => {
+        console.error("Failed loading ./car.glb:", error);
+        document.getElementById('loader').innerHTML = `
+          <div style="color:#ef4444; font-weight:bold; font-size:14px; text-align:center; padding: 20px;">
+            ERROR: Could not load car.glb model from project root.<br>
+            <span style="font-size:11px; color:#94a3b8; font-weight:normal;">Ensure file exists as <code>./car.glb</code> in repository root.</span>
+          </div>`;
+      });
     }
 
-    catch (error) {
+    function setTestDirection(axis) {
+      currentForwardAxis = axis;
+      document.querySelectorAll('#panel-right .btn-grid button').forEach(b => {
+        if(b.id.startsWith('btn-axis-')) b.classList.remove('active');
+      });
+      
+      const btnMap = { '-Z':'btn-axis-negz', '+Z':'btn-axis-posz', '+X':'btn-axis-posx', '-X':'btn-axis-negx' };
+      if(btnMap[axis]) document.getElementById(btnMap[axis]).classList.add('active');
 
-      console.error(
-        "Failed to load:",
-        item.file,
-        error
-      );
-
-
-      updateAssetDot(
-        item.file,
-        "bad"
-      );
-
+      document.getElementById('lbl-current-axis').innerText = axis;
+      updateIndicatorOrientation();
     }
 
+    function updateIndicatorOrientation() {
+      if (!forwardArrowGroup || !frontMarkerMesh) return;
 
-    completed++;
+      let rotY = 0;
+      let markerPos = new THREE.Vector3();
+      const extZ = carBounds.z / 2 + 0.5;
+      const extX = carBounds.x / 2 + 0.5;
 
-
-    const percentage =
-      Math.round(
-        completed /
-        list.length *
-        100
-      );
-
-
-    $("progress")
-      .style.width =
-      percentage + "%";
-
-
-    $("loadText")
-      .textContent =
-      `${completed}/${list.length} assets processed`;
-
-
-    $("assetCount")
-      .textContent =
-      `${state.loaded.size}/${allAssets.length}`;
-
-  }
-
-}
-
-
-/* ============================================================
-   CLONE ASSET
-   ============================================================ */
-
-function cloneAsset(
-  file
-) {
-
-  const record =
-    state.loaded.get(
-      file
-    );
-
-
-  if (!record) {
-    return null;
-  }
-
-
-  const clone =
-    record.root.clone(
-      true
-    );
-
-
-  clone.traverse(
-    object => {
-
-      if (
-        object.isMesh
-      ) {
-
-        object.castShadow =
-          true;
-
-        object.receiveShadow =
-          true;
-
+      switch (currentForwardAxis) {
+        case '-Z': rotY = 0; markerPos.set(0, carBounds.y / 2, -extZ); break;
+        case '+Z': rotY = Math.PI; markerPos.set(0, carBounds.y / 2, extZ); break;
+        case '+X': rotY = -Math.PI / 2; markerPos.set(extX, carBounds.y / 2, 0); break;
+        case '-X': rotY = Math.PI / 2; markerPos.set(-extX, carBounds.y / 2, 0); break;
       }
 
+      forwardArrowGroup.rotation.y = rotY;
+      frontMarkerMesh.position.copy(markerPos);
     }
-  );
 
-
-  return clone;
-
-}
-
-
-/* ============================================================
-   GET CALIBRATION
-   ============================================================ */
-
-function getCalibration(
-  file
-) {
-
-  return (
-    state.calibration[file]
-    ||
-    {
-
-      axis:
-        0,
-
-      rotation:
-        0,
-
-      scale:
-        1,
-
-      ground:
-        0,
-
-      extraRotation:
-        0
-
+    function rotateCar(deg) {
+      baseRotationY = (baseRotationY + deg) % 360;
+      applyTransformations();
     }
-  );
 
-}
-
-
-/* ============================================================
-   AXIS ORIENTATION
-   ============================================================ */
-
-function axisRotation(
-  axis
-) {
-
-  switch (
-    Number(axis)
-  ) {
-
-    case 0:
-      return 0;
-
-    case 1:
-      return Math.PI;
-
-    case 2:
-      return -Math.PI / 2;
-
-    case 3:
-      return Math.PI / 2;
-
-    default:
-      return 0;
-
-  }
-
-}
-
-
-/* ============================================================
-   APPLY CALIBRATION
-   ============================================================ */
-
-function applyCalibration(
-  root,
-  file
-) {
-
-  const calibration =
-    getCalibration(
-      file
-    );
-
-
-  root.rotation.y =
-    axisRotation(
-      calibration.axis
-    )
-    +
-    (
-      calibration.extraRotation
-      || 0
-    );
-
-
-  root.scale.setScalar(
-    calibration.scale
-    || 1
-  );
-
-
-  return calibration;
-
-}
-
-
-/* ============================================================
-   GROUND MODEL
-   ============================================================ */
-
-function groundObject(
-  object
-) {
-
-  const bounds =
-    getBounds(
-      object
-    );
-
-
-  object.position.y -=
-    bounds.box.min.y;
-
-}
-
-
-/* ============================================================
-   CALIBRATION HELPERS
-   ============================================================ */
-
-function addCalibrationHelpers(
-  object,
-  isVehicle
-) {
-
-  helperGroup.clear();
-
-
-  if (!object) {
-    return;
-  }
-
-
-  const bounds =
-    getBounds(
-      object
-    );
-
-
-  const size =
-    bounds.size;
-
-
-  const center =
-    bounds.center;
-
-
-  const length =
-    Math.max(
-      size.x,
-      size.y,
-      size.z
-    );
-
-
-  /* AXES */
-
-  if (
-    $("axes").checked
-  ) {
-
-    const axes =
-      new THREE.AxesHelper(
-        Math.max(
-          2,
-          length * 0.45
-        )
-      );
-
-
-    axes.position.copy(
-      center
-    );
-
-
-    helperGroup.add(
-      axes
-    );
-
-  }
-
-
-  /* FORWARD ARROW */
-
-  if (
-    isVehicle &&
-    $("forward").checked
-  ) {
-
-    const arrow =
-      new THREE.ArrowHelper(
-
-        new THREE.Vector3(
-          0,
-          0,
-          -1
-        ),
-
-        new THREE.Vector3(
-          center.x,
-          bounds.box.max.y +
-            Math.max(
-              1,
-              size.y * 0.25
-            ),
-          center.z
-        ),
-
-        Math.max(
-          2,
-          length
-        ),
-
-        0x29a9ff,
-
-        Math.max(
-          0.6,
-          length * 0.15
-        ),
-
-        Math.max(
-          0.35,
-          length * 0.08
-        )
-
-      );
-
-
-    helperGroup.add(
-      arrow
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   WORLD INSTANCE
-   ============================================================ */
-
-function addInstance(
-  file,
-  position,
-  rotationY = 0,
-  scaleMultiplier = 1,
-  name = ""
-) {
-
-  const object =
-    cloneAsset(
-      file
-    );
-
-
-  if (!object) {
-    return null;
-  }
-
-
-  applyCalibration(
-    object,
-    file
-  );
-
-
-  object.position.set(
-    position.x,
-    position.y,
-    position.z
-  );
-
-
-  object.rotation.y +=
-    rotationY;
-
-
-  object.scale.multiplyScalar(
-    scaleMultiplier
-  );
-
-
-  object.name =
-    name || file;
-
-
-  world.add(
-    object
-  );
-
-
-  return object;
-
-}
-
-
-/* ============================================================
-   REMOVE WORLD ZONE
-   ============================================================ */
-
-function removeZone(
-  name
-) {
-
-  const old =
-    world.getObjectByName(
-      name
-    );
-
-
-  if (old) {
-
-    world.remove(
-      old
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   ROAD
-   ============================================================ */
-
-function buildRoad() {
-
-  removeZone(
-    "ROAD_ZONE"
-  );
-
-
-  const group =
-    new THREE.Group();
-
-
-  group.name =
-    "ROAD_ZONE";
-
-
-  const record =
-    state.loaded.get(
-      "Road.glb"
-    );
-
-
-  if (!record) {
-    return;
-  }
-
-
-  const base =
-    cloneAsset(
-      "Road.glb"
-    );
-
-
-  if (!base) {
-    return;
-  }
-
-
-  const bounds =
-    getBounds(
-      base
-    );
-
-
-  const roadLength =
-    Math.max(
-      bounds.size.x,
-      bounds.size.z
-    );
-
-
-  base.position.set(
-    0,
-    0,
-    0
-  );
-
-
-  group.add(
-    base
-  );
-
-
-  /*
-    If Road.glb is a segment,
-    repeat it based on its measured
-    dimensions rather than guessing.
-  */
-
-  if (
-    roadLength < 300
-  ) {
-
-    const alongZ =
-      bounds.size.z >=
-      bounds.size.x;
-
-
-    for (
-      let i = 1;
-      i < 5;
-      i++
-    ) {
-
-      const segment =
-        cloneAsset(
-          "Road.glb"
-        );
-
-
-      if (!segment) {
-        continue;
+    function resetCarRotation() {
+      baseRotationY = 0;
+      applyTransformations();
+    }
+
+    function updateCalibration() {
+      sliderScale = parseFloat(document.getElementById('slider-scale').value);
+      sliderRotY = parseFloat(document.getElementById('slider-roty').value);
+      sliderOffset = parseFloat(document.getElementById('slider-offset').value);
+
+      document.getElementById('val-scale').innerText = sliderScale.toFixed(2);
+      document.getElementById('val-roty').innerText = sliderRotY.toFixed(0) + '°';
+      document.getElementById('val-offset').innerText = sliderOffset.toFixed(2);
+
+      applyTransformations();
+    }
+
+    function applyTransformations() {
+      const totalRotDeg = (baseRotationY + sliderRotY) % 360;
+      const totalRotRad = (totalRotDeg * Math.PI) / 180;
+
+      carContainerGroup.scale.set(sliderScale, sliderScale, sliderScale);
+      carContainerGroup.rotation.y = totalRotRad;
+      carContainerGroup.position.y = sliderOffset;
+
+      document.getElementById('info-roty').innerText = totalRotDeg.toFixed(0) + '°';
+      document.getElementById('info-scale').innerText = sliderScale.toFixed(2);
+      document.getElementById('lbl-active-yaw').innerText = totalRotDeg.toFixed(0) + '°';
+    }
+
+    function saveCalibration() {
+      const config = {
+        forwardAxis: currentForwardAxis,
+        scale: sliderScale,
+        rotationY: sliderRotY,
+        offsetY: sliderOffset,
+        baseRotationY: baseRotationY
+      };
+      localStorage.setItem('car_glb_calibration', JSON.stringify(config));
+      alert("Calibration settings saved to localStorage!");
+    }
+
+    function loadSavedCalibration() {
+      const saved = localStorage.getItem('car_glb_calibration');
+      if (saved) {
+        try {
+          const config = JSON.parse(saved);
+          currentForwardAxis = config.forwardAxis || '-Z';
+          sliderScale = config.scale || 1.0;
+          sliderRotY = config.rotationY || 0;
+          sliderOffset = config.offsetY || 0;
+          baseRotationY = config.baseRotationY || 0;
+
+          document.getElementById('slider-scale').value = sliderScale;
+          document.getElementById('slider-roty').value = sliderRotY;
+          document.getElementById('slider-offset').value = sliderOffset;
+
+          updateCalibration();
+          setTestDirection(currentForwardAxis);
+        } catch(e) { console.warn("Could not parse saved calibration", e); }
       }
-
-
-      if (alongZ) {
-
-        segment.position.z =
-          roadLength *
-          0.92 *
-          i;
-
-      }
-
-      else {
-
-        segment.position.x =
-          roadLength *
-          0.92 *
-          i;
-
-      }
-
-
-      group.add(
-        segment
-      );
-
     }
 
-  }
+    function resetCalibration() {
+      sliderScale = 1.0;
+      sliderRotY = 0;
+      sliderOffset = 0;
+      baseRotationY = 0;
 
+      document.getElementById('slider-scale').value = 1.0;
+      document.getElementById('slider-roty').value = 0;
+      document.getElementById('slider-offset').value = 0;
 
-  world.add(
-    group
-  );
-
-}
-
-
-/* ============================================================
-   BUILDINGS
-   ============================================================ */
-
-function buildBuildings() {
-
-  removeZone(
-    "BUILDING_ZONE"
-  );
-
-
-  const group =
-    new THREE.Group();
-
-
-  group.name =
-    "BUILDING_ZONE";
-
-
-  const files =
-    ASSETS.buildings
-      .map(
-        item => item.file
-      );
-
-
-  const radius =
-    70;
-
-
-  files.forEach(
-    (file, index) => {
-
-      const record =
-        state.loaded.get(
-          file
-        );
-
-
-      if (!record) {
-        return;
-      }
-
-
-      const angle =
-        (
-          index /
-          files.length
-        )
-        *
-        Math.PI
-        *
-        2;
-
-
-      const radiusOffset =
-        radius +
-        (
-          index % 3
-        )
-        *
-        18;
-
-
-      const x =
-        Math.cos(angle) *
-        radiusOffset;
-
-
-      const z =
-        Math.sin(angle) *
-        radiusOffset;
-
-
-      const object =
-        cloneAsset(
-          file
-        );
-
-
-      if (!object) {
-        return;
-      }
-
-
-      object.position.set(
-        x,
-        0,
-        z
-      );
-
-
-      object.rotation.y =
-        -angle +
-        (
-          index % 2
-        )
-        *
-        Math.PI;
-
-
-      groundObject(
-        object
-      );
-
-
-      group.add(
-        object
-      );
-
-    }
-  );
-
-
-  world.add(
-    group
-  );
-
-}
-
-
-/* ============================================================
-   TREES
-   ============================================================ */
-
-function buildTrees() {
-
-  removeZone(
-    "TREE_ZONE"
-  );
-
-
-  const group =
-    new THREE.Group();
-
-
-  group.name =
-    "TREE_ZONE";
-
-
-  const files =
-    ASSETS.trees.map(
-      item => item.file
-    );
-
-
-  for (
-    let i = 0;
-    i < 24;
-    i++
-  ) {
-
-    const file =
-      files[
-        i %
-        files.length
-      ];
-
-
-    const object =
-      cloneAsset(
-        file
-      );
-
-
-    if (!object) {
-      continue;
+      updateCalibration();
+      setTestDirection('-Z');
+      localStorage.removeItem('car_glb_calibration');
     }
 
-
-    const side =
-      i % 2 === 0
-        ? -1
-        : 1;
-
-
-    const z =
-      -70 +
-      i * 10;
-
-
-    const x =
-      side *
-      (
-        42 +
-        (
-          i % 4
-        )
-        *
-        8
-      );
-
-
-    object.position.set(
-      x,
-      0,
-      z
-    );
-
-
-    object.rotation.y =
-      (
-        i * 1.37
-      )
-      %
-      (
-        Math.PI * 2
-      );
-
-
-    groundObject(
-      object
-    );
-
-
-    group.add(
-      object
-    );
-
-  }
-
-
-  world.add(
-    group
-  );
-
-}
-
-
-/* ============================================================
-   VEHICLES
-   ============================================================ */
-
-function buildVehicles() {
-
-  removeZone(
-    "VEHICLE_ZONE"
-  );
-
-
-  const group =
-    new THREE.Group();
-
-
-  group.name =
-    "VEHICLE_ZONE";
-
-
-  const files =
-    ASSETS.vehicles.map(
-      item => item.file
-    );
-
-
-  files.forEach(
-    (file, index) => {
-
-      const object =
-        cloneAsset(
-          file
-        );
-
-
-      if (!object) {
-        return;
-      }
-
-
-      applyCalibration(
-        object,
-        file
-      );
-
-
-      const lane =
-        index % 2 === 0
-          ? -5
-          : 5;
-
-
-      const z =
-        -35 +
-        index * 13;
-
-
-      object.position.set(
-        lane,
-        0,
-        z
-      );
-
-
-      /*
-        This rotation is only for the
-        inspection lane layout.
-        The actual asset calibration
-        remains independent.
-      */
-
-      object.rotation.y +=
-        Math.PI;
-
-
-      groundObject(
-        object
-      );
-
-
-      group.add(
-        object
-      );
-
-    }
-  );
-
-
-  /*
-    PLAYER CAR
-  */
-
-  const player =
-    cloneAsset(
-      "car.glb"
-    );
-
-
-  if (player) {
-
-    applyCalibration(
-      player,
-      "car.glb"
-    );
-
-
-    player.name =
-      "PLAYER_TEST_CAR";
-
-
-    player.position.set(
-      0,
-      0,
-      18
-    );
-
-
-    player.rotation.y +=
-      Math.PI;
-
-
-    groundObject(
-      player
-    );
-
-
-    world.add(
-      player
-    );
-
-
-    state.player =
-      player;
-
-  }
-
-
-  world.add(
-    group
-  );
-
-}
-
-
-/* ============================================================
-   PEOPLE
-   ============================================================ */
-
-function buildPeople() {
-
-  removeZone(
-    "PEOPLE_ZONE"
-  );
-
-
-  const group =
-    new THREE.Group();
-
-
-  group.name =
-    "PEOPLE_ZONE";
-
-
-  const files =
-    ASSETS.people.map(
-      item => item.file
-    );
-
-
-  for (
-    let i = 0;
-    i < 10;
-    i++
-  ) {
-
-    const file =
-      files[
-        i %
-        files.length
-      ];
-
-
-    const object =
-      cloneAsset(
-        file
-      );
-
-
-    if (!object) {
-      continue;
+    function resetCamera() {
+      camera.position.copy(initialCameraPos);
+      if (carBounds.y) controls.target.set(0, carBounds.y / 2, 0);
+      else controls.target.set(0, 0, 0);
+      controls.update();
     }
 
-
-    object.position.set(
-
-      (
-        i % 2 === 0
-          ? -1
-          : 1
-      )
-      *
-      (
-        14 +
-        (
-          i % 3
-        )
-        *
-        2
-      ),
-
-      0,
-
-      -50 +
-      i * 9
-
-    );
-
-
-    object.rotation.y =
-      i % 2 === 0
-        ? 0
-        : Math.PI;
-
-
-    groundObject(
-      object
-    );
-
-
-    group.add(
-      object
-    );
-
-  }
-
-
-  world.add(
-    group
-  );
-
-}
-
-
-/* ============================================================
-   AIRPORT
-   ============================================================ */
-
-function buildAirport() {
-
-  removeZone(
-    "AIRPORT_ZONE"
-  );
-
-
-  const group =
-    new THREE.Group();
-
-
-  group.name =
-    "AIRPORT_ZONE";
-
-
-  const airport =
-    cloneAsset(
-      "Airport 2.glb"
-    );
-
-
-  if (!airport) {
-    return;
-  }
-
-
-  /*
-    Only normalize the airport
-    enough to keep it usable inside
-    the inspection environment.
-  */
-
-  const bounds =
-    getBounds(
-      airport
-    );
-
-
-  const maxDimension =
-    Math.max(
-      bounds.size.x,
-      bounds.size.z,
-      1
-    );
-
-
-  const factor =
-    Math.min(
-      1,
-      180 /
-      maxDimension
-    );
-
-
-  airport.scale.multiplyScalar(
-    factor
-  );
-
-
-  airport.position.set(
-    190,
-    0,
-    -40
-  );
-
-
-  groundObject(
-    airport
-  );
-
-
-  group.add(
-    airport
-  );
-
-
-  world.add(
-    group
-  );
-
-}
-
-
-/* ============================================================
-   AIRCRAFT
-   ============================================================ */
-
-function buildAircraft() {
-
-  removeZone(
-    "AIRCRAFT_ZONE"
-  );
-
-
-  const group =
-    new THREE.Group();
-
-
-  group.name =
-    "AIRCRAFT_ZONE";
-
-
-  const files =
-    ASSETS.aircraft.map(
-      item => item.file
-    );
-
-
-  files.forEach(
-    (file, index) => {
-
-      const object =
-        cloneAsset(
-          file
-        );
-
-
-      if (!object) {
-        return;
-      }
-
-
-      applyCalibration(
-        object,
-        file
-      );
-
-
-      object.position.set(
-
-        180 +
-        index * 45,
-
-        18,
-
-        -20 -
-        index * 25
-
-      );
-
-
-      object.rotation.y +=
-        Math.PI;
-
-
-      const bounds =
-        getBounds(
-          object
-        );
-
-
-      const scale =
-        35 /
-        Math.max(
-          bounds.size.x,
-          bounds.size.y,
-          bounds.size.z,
-          1
-        );
-
-
-      object.scale.multiplyScalar(
-        Math.min(
-          1,
-          scale
-        )
-      );
-
-
-      group.add(
-        object
-      );
-
-    }
-  );
-
-
-  world.add(
-    group
-  );
-
-}
-
-
-/* ============================================================
-   BRIDGE
-   ============================================================ */
-
-function buildBridge() {
-
-  removeZone(
-    "BRIDGE_ZONE"
-  );
-
-
-  const group =
-    new THREE.Group();
-
-
-  group.name =
-    "BRIDGE_ZONE";
-
-
-  const bridge =
-    cloneAsset(
-      "bridge.glb"
-    );
-
-
-  if (!bridge) {
-    return;
-  }
-
-
-  bridge.position.set(
-    0,
-    0,
-    125
-  );
-
-
-  bridge.rotation.y +=
-    Math.PI;
-
-
-  groundObject(
-    bridge
-  );
-
-
-  group.add(
-    bridge
-  );
-
-
-  world.add(
-    group
-  );
-
-}
-
-
-/* ============================================================
-   BUILD ENTIRE WORLD
-   ============================================================ */
-
-async function buildWorld() {
-
-  $("loadWorld")
-    .disabled =
-    true;
-
-
-  $("progress")
-    .style.width =
-    "0%";
-
-
-  $("loadText")
-    .textContent =
-    "Loading actual project assets…";
-
-
-  setStatus(
-    "Loading real assets…"
-  );
-
-
-  await loadSequential(
-    allAssets
-  );
-
-
-  buildRoad();
-
-  buildBuildings();
-
-  buildTrees();
-
-  buildVehicles();
-
-  buildPeople();
-
-  buildAirport();
-
-  buildAircraft();
-
-  buildBridge();
-
-
-  $("loadWorld")
-    .disabled =
-    false;
-
-
-  setStatus(
-    "World built from current GLB assets"
-  );
-
-
-  $("loadText")
-    .textContent =
-    "World ready. Click an asset to inspect it.";
-
-
-  toast(
-    "Real asset world built."
-  );
-
-}
-
-
-/* ============================================================
-   CLEAR WORLD
-   ============================================================ */
-
-function clearWorld() {
-
-  while (
-    world.children.length
-  ) {
-
-    world.remove(
-      world.children[0]
-    );
-
-  }
-
-
-  helperGroup.clear();
-
-
-  state.player =
-    null;
-
-
-  setStatus(
-    "World cleared"
-  );
-
-
-  toast(
-    "World cleared."
-  );
-
-}
-
-
-/* ============================================================
-   ASSET LIST
-   ============================================================ */
-
-function renderAssetList() {
-
-  const container =
-    $("assetList");
-
-
-  container.innerHTML =
-    "";
-
-
-  const groups = {};
-
-
-  for (
-    const item
-    of allAssets
-  ) {
-
-    if (!groups[item.category]) {
-
-      groups[item.category] =
-        [];
-
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-
-    groups[item.category]
-      .push(item);
-
-  }
-
-
-  for (
-    const [category, list]
-    of Object.entries(groups)
-  ) {
-
-    const heading =
-      document.createElement(
-        "div"
-      );
-
-
-    heading.className =
-      "small";
-
-
-    heading.style.cssText =
-      `
-      margin:8px 0 4px;
-      font-weight:700;
-      color:#b7cad6
-      `;
-
-
-    heading.textContent =
-      categoryName(
-        category
-      );
-
-
-    container.appendChild(
-      heading
-    );
-
-
-    for (
-      const item
-      of list
-    ) {
-
-      const element =
-        document.createElement(
-          "div"
-        );
-
-
-      element.className =
-        "asset";
-
-
-      element.dataset.file =
-        item.file;
-
-
-      element.innerHTML = `
-
-        <span
-          class="dot"
-          data-dot="${CSS.escape(item.file)}"
-        ></span>
-
-        <span class="asset-name">
-          ${item.label}
-        </span>
-
-        <span class="pill">
-          ${category}
-        </span>
-
-      `;
-
-
-      element.onclick =
-        () =>
-          selectAsset(
-            item
-          );
-
-
-      container.appendChild(
-        element
-      );
-
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
     }
 
-  }
-
-}
-
-
-/* ============================================================
-   STATUS DOT
-   ============================================================ */
-
-function updateAssetDot(
-  file,
-  statusName
-) {
-
-  const dot =
-    $("assetList")
-      .querySelector(
-        `[data-dot="${CSS.escape(file)}"]`
-      );
-
-
-  if (dot) {
-
-    dot.className =
-      "dot " +
-      statusName;
-
-  }
-
-}
-
-
-/* ============================================================
-   INSPECTOR STATS
-   ============================================================ */
-
-function updateStats(
-  record
-) {
-
-  if (!record) {
-
-    $("stats").innerHTML = `
-
-      <div class="metric">
-        <span>Status</span>
-        <span>—</span>
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-
-  const stats =
-    record.stats;
-
-
-  const bounds =
-    getBounds(
-      record.root
-    );
-
-
-  $("stats").innerHTML = `
-
-    <div class="metric">
-      <span>Status</span>
-      <span>Loaded</span>
-    </div>
-
-    <div class="metric">
-      <span>Size</span>
-
-      <span>
-        ${bounds.size.x.toFixed(2)}
-        ×
-        ${bounds.size.y.toFixed(2)}
-        ×
-        ${bounds.size.z.toFixed(2)}
-      </span>
-    </div>
-
-    <div class="metric">
-      <span>Meshes</span>
-      <span>${stats.meshes}</span>
-    </div>
-
-    <div class="metric">
-      <span>Triangles</span>
-      <span>${stats.triangles.toLocaleString()}</span>
-    </div>
-
-    <div class="metric">
-      <span>Animations</span>
-      <span>${record.animations.length}</span>
-    </div>
-
-  `;
-
-}
-
-
-/* ============================================================
-   SELECT ASSET
-   ============================================================ */
-
-function selectAsset(
-  item
-) {
-
-  state.selected =
-    item;
-
-
-  document
-    .querySelectorAll(
-      ".asset"
-    )
-    .forEach(
-      element => {
-
-        element.classList.toggle(
-
-          "active",
-
-          element.dataset.file ===
-          item.file
-
-        );
-
-      }
-    );
-
-
-  $("selectedName")
-    .textContent =
-    item.file;
-
-
-  const record =
-    state.loaded.get(
-      item.file
-    );
-
-
-  updateStats(
-    record
-  );
-
-
-  const calibration =
-    getCalibration(
-      item.file
-    );
-
-
-  $("axis").value =
-    String(
-      calibration.axis
-    );
-
-
-  $("scale").value =
-    calibration.scale;
-
-
-  $("ground").value =
-    calibration.ground;
-
-
-  $("scaleValue")
-    .textContent =
-    calibration.scale
-      .toFixed(2);
-
-
-  $("groundValue")
-    .textContent =
-    calibration.ground
-      .toFixed(2);
-
-
-  if (!record) {
-
-    helperGroup.clear();
-
-    return;
-
-  }
-
-
-  helperGroup.clear();
-
-
-  const preview =
-    cloneAsset(
-      item.file
-    );
-
-
-  if (!preview) {
-    return;
-  }
-
-
-  applyCalibration(
-    preview,
-    item.file
-  );
-
-
-  preview.position.set(
-    0,
-    calibration.ground || 0,
-    0
-  );
-
-
-  groundObject(
-    preview
-  );
-
-
-  helperGroup.add(
-    preview
-  );
-
-
-  addCalibrationHelpers(
-
-    preview,
-
-    item.category ===
-      "vehicles"
-
-  );
-
-
-  const bounds =
-    getBounds(
-      preview
-    );
-
-
-  focusCamera(
-
-    new THREE.Vector3(
-      0,
-      Math.max(
-        2,
-        bounds.size.y * 0.55
-      ),
-      0
-    ),
-
-    Math.max(
-      12,
-      bounds.size.length() * 1.5
-    )
-
-  );
-
-}
-
-
-/* ============================================================
-   UPDATE CALIBRATION
-   ============================================================ */
-
-function applyPreviewCalibration() {
-
-  if (!state.selected) {
-    return;
-  }
-
-
-  const file =
-    state.selected.file;
-
-
-  const calibration =
-    getCalibration(
-      file
-    );
-
-
-  calibration.axis =
-    Number(
-      $("axis").value
-    );
-
-
-  calibration.scale =
-    Number(
-      $("scale").value
-    );
-
-
-  calibration.ground =
-    Number(
-      $("ground").value
-    );
-
-
-  calibration.rotation =
-    axisRotation(
-      calibration.axis
-    );
-
-
-  state.calibration[file] =
-    calibration;
-
-
-  selectAsset(
-    state.selected
-  );
-
-}
-
-
-/* ============================================================
-   SAVE CALIBRATION
-   ============================================================ */
-
-function saveCalibration() {
-
-  localStorage.setItem(
-
-    "assetCalibrationV1",
-
-    JSON.stringify(
-      state.calibration
-    )
-
-  );
-
-
-  if (
-    state.selected
-  ) {
-
-    toast(
-      `Saved calibration for ${state.selected.file}`
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   ROTATION CONTROLS
-   ============================================================ */
-
-$("rotL").onclick =
-  () => {
-
-    if (!state.selected) {
-      return;
-    }
-
-
-    const file =
-      state.selected.file;
-
-
-    const calibration =
-      getCalibration(
-        file
-      );
-
-
-    calibration.extraRotation =
-      (
-        calibration.extraRotation
-        || 0
-      )
-      -
-      Math.PI / 2;
-
-
-    state.calibration[file] =
-      calibration;
-
-
-    selectAsset(
-      state.selected
-    );
-
-  };
-
-
-$("rotR").onclick =
-  () => {
-
-    if (!state.selected) {
-      return;
-    }
-
-
-    const file =
-      state.selected.file;
-
-
-    const calibration =
-      getCalibration(
-        file
-      );
-
-
-    calibration.extraRotation =
-      (
-        calibration.extraRotation
-        || 0
-      )
-      +
-      Math.PI / 2;
-
-
-    state.calibration[file] =
-      calibration;
-
-
-    selectAsset(
-      state.selected
-    );
-
-  };
-
-
-/* ============================================================
-   RESET CALIBRATION
-   ============================================================ */
-
-$("resetCal").onclick =
-  () => {
-
-    if (!state.selected) {
-      return;
-    }
-
-
-    delete state.calibration[
-      state.selected.file
-    ];
-
-
-    localStorage.setItem(
-
-      "assetCalibrationV1",
-
-      JSON.stringify(
-        state.calibration
-      )
-
-    );
-
-
-    selectAsset(
-      state.selected
-    );
-
-  };
-
-
-/* ============================================================
-   UI EVENTS
-   ============================================================ */
-
-$("axis").onchange =
-  applyPreviewCalibration;
-
-
-$("scale").oninput =
-  () => {
-
-    $("scaleValue")
-      .textContent =
-      Number(
-        $("scale").value
-      ).toFixed(2);
-
-
-    applyPreviewCalibration();
-
-  };
-
-
-$("ground").oninput =
-  () => {
-
-    $("groundValue")
-      .textContent =
-      Number(
-        $("ground").value
-      ).toFixed(2);
-
-
-    applyPreviewCalibration();
-
-  };
-
-
-$("saveCal").onclick =
-  saveCalibration;
-
-
-$("axes").onchange =
-  () => {
-
-    if (
-      state.selected
-    ) {
-
-      selectAsset(
-        state.selected
-      );
-
-    }
-
-  };
-
-
-$("forward").onchange =
-  () => {
-
-    if (
-      state.selected
-    ) {
-
-      selectAsset(
-        state.selected
-      );
-
-    }
-
-  };
-
-
-$("shadows").onchange =
-  () => {
-
-    renderer.shadowMap.enabled =
-      $("shadows").checked;
-
-  };
-
-
-$("loadWorld").onclick =
-  buildWorld;
-
-
-$("clearWorld").onclick =
-  clearWorld;
-
-
-/* ============================================================
-   CATEGORY BUTTONS
-   ============================================================ */
-
-document
-  .querySelectorAll(
-    "[data-cat]"
-  )
-  .forEach(
-    button => {
-
-      button.onclick =
-        () => {
-
-          const category =
-            button.dataset.cat;
-
-
-          const first =
-            ASSETS[category]
-            &&
-            ASSETS[category][0];
-
-
-          if (first) {
-
-            selectAsset(
-              first
-            );
-
-          }
-
-        };
-
-
-      button.ondblclick =
-        () => {
-
-          const category =
-            button.dataset.cat;
-
-
-          const zones = {
-
-            road:
-              "ROAD_ZONE",
-
-            buildings:
-              "BUILDING_ZONE",
-
-            trees:
-              "TREE_ZONE",
-
-            vehicles:
-              "VEHICLE_ZONE",
-
-            people:
-              "PEOPLE_ZONE",
-
-            airport:
-              "AIRPORT_ZONE",
-
-            aircraft:
-              "AIRCRAFT_ZONE",
-
-            bridge:
-              "BRIDGE_ZONE"
-
-          };
-
-
-          const group =
-            world.getObjectByName(
-              zones[category]
-            );
-
-
-          if (group) {
-
-            group.visible =
-              !group.visible;
-
-          }
-
-        };
-
-    }
-  );
-
-
-/* ============================================================
-   ORBIT CAMERA
-   ============================================================ */
-
-const orbit = {
-
-  target:
-    new THREE.Vector3(
-      0,
-      0,
-      0
-    ),
-
-  radius:
-    90,
-
-  theta:
-    0.65,
-
-  phi:
-    1.05,
-
-  dragging:
-    false,
-
-  x:
-    0,
-
-  y:
-    0
-
-};
-
-
-function updateCamera() {
-
-  orbit.phi =
-    Math.max(
-      0.12,
-      Math.min(
-        Math.PI - 0.12,
-        orbit.phi
-      )
-    );
-
-
-  camera.position.set(
-
-    orbit.target.x +
-      orbit.radius *
-      Math.sin(
-        orbit.phi
-      ) *
-      Math.sin(
-        orbit.theta
-      ),
-
-    orbit.target.y +
-      orbit.radius *
-      Math.cos(
-        orbit.phi
-      ),
-
-    orbit.target.z +
-      orbit.radius *
-      Math.sin(
-        orbit.phi
-      ) *
-      Math.cos(
-        orbit.theta
-      )
-
-  );
-
-
-  camera.lookAt(
-    orbit.target
-  );
-
-}
-
-
-/* ============================================================
-   CAMERA FOCUS
-   ============================================================ */
-
-function focusCamera(
-  target,
-  radius
-) {
-
-  orbit.target.copy(
-    target
-  );
-
-
-  orbit.radius =
-    Math.max(
-      6,
-      Math.min(
-        600,
-        radius
-      )
-    );
-
-
-  updateCamera();
-
-}
-
-
-/* ============================================================
-   CAMERA INPUT
-   ============================================================ */
-
-renderer.domElement
-  .addEventListener(
-    "pointerdown",
-    event => {
-
-      orbit.dragging =
-        true;
-
-      orbit.x =
-        event.clientX;
-
-      orbit.y =
-        event.clientY;
-
-    }
-  );
-
-
-window.addEventListener(
-  "pointerup",
-  () => {
-
-    orbit.dragging =
-      false;
-
-  }
-);
-
-
-window.addEventListener(
-  "pointermove",
-  event => {
-
-    if (
-      !orbit.dragging
-    ) {
-      return;
-    }
-
-
-    const dx =
-      event.clientX -
-      orbit.x;
-
-
-    const dy =
-      event.clientY -
-      orbit.y;
-
-
-    orbit.x =
-      event.clientX;
-
-
-    orbit.y =
-      event.clientY;
-
-
-    orbit.theta -=
-      dx * 0.008;
-
-
-    orbit.phi -=
-      dy * 0.008;
-
-
-    updateCamera();
-
-  }
-);
-
-
-renderer.domElement
-  .addEventListener(
-    "wheel",
-    event => {
-
-      event.preventDefault();
-
-
-      orbit.radius *=
-        Math.exp(
-          event.deltaY *
-          0.001
-        );
-
-
-      orbit.radius =
-        Math.max(
-          3,
-          Math.min(
-            900,
-            orbit.radius
-          )
-        );
-
-
-      updateCamera();
-
-    },
-    {
-      passive: false
-    }
-  );
-
-
-function resetCamera() {
-
-  orbit.target.set(
-    0,
-    0,
-    0
-  );
-
-
-  orbit.radius =
-    90;
-
-
-  orbit.theta =
-    0.65;
-
-
-  orbit.phi =
-    1.05;
-
-
-  updateCamera();
-
-}
-
-
-resetCamera();
-
-
-/* ============================================================
-   KEYBOARD
-   ============================================================ */
-
-window.addEventListener(
-  "keydown",
-  event => {
-
-    state.keys[
-      event.key.toLowerCase()
-    ] = true;
-
-
-    if (
-      event.key.toLowerCase()
-      ===
-      "r"
-    ) {
-
-      resetCamera();
-
-    }
-
-  }
-);
-
-
-window.addEventListener(
-  "keyup",
-  event => {
-
-    state.keys[
-      event.key.toLowerCase()
-    ] = false;
-
-  }
-);
-
-
-/* ============================================================
-   TEST DRIVE PLAYER
-   ============================================================ */
-
-function drivePlayer(
-  delta
-) {
-
-  if (!state.player) {
-    return;
-  }
-
-
-  let forward =
-    0;
-
-
-  let steering =
-    0;
-
-
-  if (
-    state.keys.w ||
-    state.keys.arrowup
-  ) {
-
-    forward += 1;
-
-  }
-
-
-  if (
-    state.keys.s ||
-    state.keys.arrowdown
-  ) {
-
-    forward -= 1;
-
-  }
-
-
-  if (
-    state.keys.a ||
-    state.keys.arrowleft
-  ) {
-
-    steering += 1;
-
-  }
-
-
-  if (
-    state.keys.d ||
-    state.keys.arrowright
-  ) {
-
-    steering -= 1;
-
-  }
-
-
-  if (
-    forward !== 0
-  ) {
-
-    state.player
-      .translateZ(
-        forward *
-        delta *
-        22
-      );
-
-  }
-
-
-  state.player.rotation.y +=
-    steering *
-    delta *
-    1.8;
-
-
-  const bounds =
-    getBounds(
-      state.player
-    );
-
-
-  if (
-    bounds.box.min.y < 0
-  ) {
-
-    state.player.position.y -=
-      bounds.box.min.y;
-
-  }
-
-}
-
-
-/* ============================================================
-   FPS
-   ============================================================ */
-
-let frameCount =
-  0;
-
-
-let fpsStart =
-  performance.now();
-
-
-/* ============================================================
-   ANIMATION LOOP
-   ============================================================ */
-
-function animate() {
-
-  requestAnimationFrame(
-    animate
-  );
-
-
-  const delta =
-    Math.min(
-      0.05,
-      state.clock.getDelta()
-    );
-
-
-  /*
-    Update animated pedestrians /
-    animated assets.
-  */
-
-  for (
-    const mixer
-    of state.mixers
-  ) {
-
-    mixer.update(
-      delta
-    );
-
-  }
-
-
-  drivePlayer(
-    delta
-  );
-
-
-  frameCount++;
-
-
-  const now =
-    performance.now();
-
-
-  if (
-    now -
-    fpsStart >
-    700
-  ) {
-
-    $("fps")
-      .textContent =
-      Math.round(
-
-        frameCount *
-        1000 /
-        (
-          now -
-          fpsStart
-        )
-
-      )
-      +
-      " FPS";
-
-
-    frameCount =
-      0;
-
-
-    fpsStart =
-      now;
-
-  }
-
-
-  renderer.render(
-    scene,
-    camera
-  );
-
-}
-
-
-animate();
-
-
-/* ============================================================
-   RESIZE
-   ============================================================ */
-
-function resize() {
-
-  const rectangle =
-    $("viewport")
-      .getBoundingClientRect();
-
-
-  camera.aspect =
-    rectangle.width /
-    rectangle.height;
-
-
-  camera.updateProjectionMatrix();
-
-
-  renderer.setSize(
-    rectangle.width,
-    rectangle.height,
-    false
-  );
-
-}
-
-
-window.addEventListener(
-  "resize",
-  resize
-);
-
-
-resize();
-
-
-/* ============================================================
-   INITIAL UI
-   ============================================================ */
-
-renderAssetList();
-
-
-$("assetCount")
-  .textContent =
-  `0/${allAssets.length}`;
-
-
-setStatus(
-  "Ready — click Build World"
-);
-
-
-/* ============================================================
-   DEBUG ACCESS
-   ============================================================ */
-
-window.AssetWorld = {
-
-  assets:
-    allAssets,
-
-  loaded:
-    state.loaded,
-
-  calibration:
-    state.calibration,
-
-  scene,
-
-  world,
-
-  rebuild:
-    buildWorld
-
-};
-
-})();
-</script>
-
+    window.onload = init;
+  </script>
 </body>
 </html>
